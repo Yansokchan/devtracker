@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useTaskContext } from "@/context/TaskContext";
 import { Button } from "@/components/ui/button";
+import { TaskDialog } from "@/components/TaskDialog";
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -36,9 +37,10 @@ const navigationItems = [
 ];
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { open } = useSidebar();
   const location = useLocation();
   const { getOverallStats } = useTaskContext();
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const stats = getOverallStats();
 
   const currentPath = location.pathname;
@@ -48,15 +50,15 @@ export function AppSidebar() {
     isActive ? "bg-primary/10 text-primary font-medium border-r-2 border-primary" : "hover:bg-muted/50";
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible>
+    <Sidebar className={open ? "w-64" : "w-16"} collapsible="icon">
       <SidebarContent className="bg-white border-r border-gray-200">
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 gradient-red rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
               <Target className="w-5 h-5 text-white" />
             </div>
-            {!collapsed && (
+            {open && (
               <div>
                 <h1 className="font-bold text-lg text-gray-900">TaskFlow</h1>
                 <p className="text-xs text-gray-600">Pro Dashboard</p>
@@ -66,9 +68,12 @@ export function AppSidebar() {
         </div>
 
         {/* Quick Add Button */}
-        {!collapsed && (
+        {open && (
           <div className="p-4">
-            <Button className="w-full gradient-red text-white hover:opacity-90 transition-opacity">
+            <Button 
+              onClick={() => setIsTaskDialogOpen(true)}
+              className="w-full gradient-primary text-white hover:opacity-90 transition-opacity"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add New Task
             </Button>
@@ -85,7 +90,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
                       <item.icon className="w-4 h-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {open && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -95,7 +100,7 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Quick Stats */}
-        {!collapsed && (
+        {open && (
           <SidebarGroup>
             <SidebarGroupLabel>Quick Stats</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -136,6 +141,13 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
       </SidebarContent>
+
+      {/* Task Dialog */}
+      <TaskDialog
+        isOpen={isTaskDialogOpen}
+        onClose={() => setIsTaskDialogOpen(false)}
+        task={null}
+      />
     </Sidebar>
   );
 }

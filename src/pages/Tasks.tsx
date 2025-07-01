@@ -3,12 +3,30 @@ import { useState } from "react";
 import { useTaskContext } from "@/context/TaskContext";
 import { TaskCard } from "@/components/TaskCard";
 import { SearchAndFilters } from "@/components/SearchAndFilters";
+import { TaskDialog } from "@/components/TaskDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { Task } from "@/types/task";
 
 export default function Tasks() {
   const { filteredTasks } = useTaskContext();
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const handleNewTask = () => {
+    setSelectedTask(null);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setSelectedTask(task);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedTask(null);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -18,7 +36,7 @@ export default function Tasks() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">All Tasks</h1>
           <p className="text-gray-600">Manage and track all your tasks in one place.</p>
         </div>
-        <Button className="gradient-red text-white hover:opacity-90">
+        <Button onClick={handleNewTask} className="gradient-primary text-white hover:opacity-90">
           <Plus className="w-4 h-4 mr-2" />
           New Task
         </Button>
@@ -33,7 +51,7 @@ export default function Tasks() {
           <TaskCard 
             key={task.id} 
             task={task} 
-            onEdit={setSelectedTask}
+            onEdit={handleEditTask}
           />
         ))}
       </div>
@@ -45,12 +63,19 @@ export default function Tasks() {
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
           <p className="text-gray-600 mb-4">Create your first task to get started.</p>
-          <Button className="gradient-red text-white hover:opacity-90">
+          <Button onClick={handleNewTask} className="gradient-primary text-white hover:opacity-90">
             <Plus className="w-4 h-4 mr-2" />
             Create Task
           </Button>
         </div>
       )}
+
+      {/* Task Dialog */}
+      <TaskDialog
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        task={selectedTask}
+      />
     </div>
   );
 }

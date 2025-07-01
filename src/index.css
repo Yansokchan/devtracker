@@ -59,6 +59,10 @@
 }
 
 @layer components {
+  .gradient-primary {
+    background: linear-gradient(135deg, #ff3333 0%, #ff5555 100%);
+  }
+  
   .gradient-red {
     background: linear-gradient(135deg, #ff3333 0%, #ff5555 100%);
   }
