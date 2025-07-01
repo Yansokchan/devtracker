@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Task } from "@/types/task";
+import { Task, TaskStep } from "@/types/task";
 import { useTaskContext } from "@/context/TaskContext";
 import {
   Dialog,
@@ -31,7 +31,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { X, Plus, Edit, Trash2 } from "lucide-react";
 
 const taskSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
@@ -53,6 +54,12 @@ interface TaskDialogProps {
 export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const { addTask, updateTask } = useTaskContext();
   const [newTag, setNewTag] = useState("");
+  const [steps, setSteps] = useState<TaskStep[]>([]);
+  const [newStepTitle, setNewStepTitle] = useState("");
+  const [newStepDescription, setNewStepDescription] = useState("");
+  const [editingStep, setEditingStep] = useState<number | null>(null);
+  const [editStepTitle, setEditStepTitle] = useState("");
+  const [editStepDescription, setEditStepDescription] = useState("");
   const isEdit = !!task;
 
   const form = useForm<TaskFormData>({
@@ -78,6 +85,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         due_date: task.due_date || "",
         tags: task.tags,
       });
+      setSteps(task.steps || []);
     } else if (isOpen && !task) {
       form.reset({
         title: "",
@@ -87,6 +95,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         due_date: "",
         tags: [],
       });
+      setSteps([]);
     }
   }, [isOpen, task, form]);
 
@@ -99,6 +108,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         status: data.status,
         due_date: data.due_date || undefined,
         tags: data.tags,
+        steps: steps,
       });
     } else {
       addTask({
@@ -108,7 +118,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         status: data.status,
         due_date: data.due_date || undefined,
         tags: data.tags,
-        steps: [],
+        steps: steps,
       });
     }
     onClose();
@@ -127,10 +137,70 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     form.setValue("tags", currentTags.filter(tag => tag !== tagToRemove));
   };
 
+  const addStep = () => {
+    if (newStepTitle.trim()) {
+      const newStep: TaskStep = {
+        id: Math.max(...steps.map(s => s.id || 0), 0) + 1,
+        title: newStepTitle.trim(),
+        description: newStepDescription.trim() || undefined,
+        completed: false,
+      };
+      setSteps([...steps, newStep]);
+      setNewStepTitle("");
+      setNewStepDescription("");
+    }
+  };
+
+  const removeStep = (stepId: number) => {
+    setSteps(steps.filter(step => step.id !== stepId));
+  };
+
+  const toggleStepCompletion = (stepId: number) => {
+    setSteps(steps.map(step =>
+      step.id === stepId ? { ...step, completed: !step.completed } : step
+    ));
+  };
+
+  const startEditingStep = (step: TaskStep) => {
+    setEditingStep(step.id);
+    setEditStepTitle(step.title);
+    setEditStepDescription(step.description || "");
+  };
+
+  const saveStepEdit = () => {
+    if (editingStep !== null && editStepTitle.trim()) {
+      setSteps(steps.map(step =>
+        step.id === editingStep
+          ? { ...step, title: editStepTitle.trim(), description: editStepDescription.trim() || undefined }
+          : step
+      ));
+      setEditingStep(null);
+      setEditStepTitle("");
+      setEditStepDescription("");
+    }
+  };
+
+  const cancelStepEdit = () => {
+    setEditingStep(null);
+    setEditStepTitle("");
+    setEditStepDescription("");
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       addTag();
+    }
+  };
+
+  const handleStepKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (editingStep !== null) {
+        saveStepEdit();
+      } else {
+        addStep();
+      }
     }
   };
 
@@ -268,6 +338,98 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                         <X className="w-3 h-3" />
                       </button>
                     </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <FormLabel>Steps</FormLabel>
+                <div className="space-y-2">
+                  <div className="flex space-x-2">
+                    <Input
+                      placeholder="Step title"
+                      value={newStepTitle}
+                      onChange={(e) => setNewStepTitle(e.target.value)}
+                      onKeyPress={handleStepKeyPress}
+                    />
+                    <Input
+                      placeholder="Step description (optional)"
+                      value={newStepDescription}
+                      onChange={(e) => setNewStepDescription(e.target.value)}
+                      onKeyPress={handleStepKeyPress}
+                    />
+                    <Button type="button" onClick={addStep} size="icon" variant="outline">
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {steps.map((step) => (
+                    <div key={step.id} className="flex items-start space-x-2 p-3 border rounded-lg">
+                      <Checkbox
+                        checked={step.completed}
+                        onCheckedChange={() => toggleStepCompletion(step.id)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        {editingStep === step.id ? (
+                          <div className="space-y-2">
+                            <Input
+                              value={editStepTitle}
+                              onChange={(e) => setEditStepTitle(e.target.value)}
+                              onKeyPress={handleStepKeyPress}
+                              placeholder="Step title"
+                            />
+                            <Input
+                              value={editStepDescription}
+                              onChange={(e) => setEditStepDescription(e.target.value)}
+                              onKeyPress={handleStepKeyPress}
+                              placeholder="Step description (optional)"
+                            />
+                            <div className="flex space-x-2">
+                              <Button type="button" onClick={saveStepEdit} size="sm" variant="outline">
+                                Save
+                              </Button>
+                              <Button type="button" onClick={cancelStepEdit} size="sm" variant="outline">
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className={`font-medium ${step.completed ? 'line-through text-gray-500' : ''}`}>
+                              {step.title}
+                            </p>
+                            {step.description && (
+                              <p className={`text-sm text-gray-600 mt-1 ${step.completed ? 'line-through' : ''}`}>
+                                {step.description}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex space-x-1">
+                        <Button
+                          type="button"
+                          onClick={() => startEditingStep(step)}
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => removeStep(step.id)}
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>
