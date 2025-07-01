@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Task } from "@/types/task";
-import { Edit, Trash2, Calendar, Tag } from "lucide-react";
+import { Edit, Trash2, Calendar, Tag, CheckCircle } from "lucide-react";
 import { useTaskContext } from "@/context/TaskContext";
 
 interface TaskCardProps {
@@ -33,6 +33,15 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
       case 'Review': return 'status-review';
       case 'Completed': return 'status-completed';
       default: return 'status-todo';
+    }
+  };
+
+  const getStepStatusColor = (status: string) => {
+    switch (status) {
+      case 'To Do': return 'bg-gray-100 text-gray-800';
+      case 'In Progress': return 'bg-blue-100 text-blue-800';
+      case 'Completed': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -94,6 +103,26 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
             <p className="text-xs text-gray-500 mt-1">
               {task.steps.filter(s => s.completed).length} of {task.steps.length} steps completed
             </p>
+            
+            {/* Step Status Summary */}
+            <div className="mt-2 space-y-1">
+              {task.steps.slice(0, 3).map((step) => (
+                <div key={step.id} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className={`w-3 h-3 ${step.completed ? 'text-green-500' : 'text-gray-300'}`} />
+                    <span className={`truncate max-w-32 ${step.completed ? 'line-through text-gray-500' : ''}`}>
+                      {step.title}
+                    </span>
+                  </div>
+                  <Badge className={`text-xs ${getStepStatusColor(step.status)}`}>
+                    {step.status}
+                  </Badge>
+                </div>
+              ))}
+              {task.steps.length > 3 && (
+                <p className="text-xs text-gray-500">+{task.steps.length - 3} more steps</p>
+              )}
+            </div>
           </div>
         )}
         

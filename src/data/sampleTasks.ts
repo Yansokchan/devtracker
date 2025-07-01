@@ -11,10 +11,10 @@ export const sampleTasks: Task[] = [
     due_date: "2024-07-15",
     tags: ["design", "website", "ui/ux"],
     steps: [
-      { id: 1, title: "Research competitor pages", completed: true },
-      { id: 2, title: "Create wireframes", completed: true },
-      { id: 3, title: "Design mockups", completed: false },
-      { id: 4, title: "Get stakeholder approval", completed: false }
+      { id: 1, title: "Research competitor pages", completed: true, status: "Completed" },
+      { id: 2, title: "Create wireframes", completed: true, status: "Completed" },
+      { id: 3, title: "Design mockups", completed: false, status: "In Progress" },
+      { id: 4, title: "Get stakeholder approval", completed: false, status: "To Do" }
     ],
     created_at: "2024-07-01",
     updated_at: "2024-07-10"
@@ -40,11 +40,11 @@ export const sampleTasks: Task[] = [
     due_date: "2024-07-12",
     tags: ["bug", "authentication", "mobile"],
     steps: [
-      { id: 1, title: "Reproduce the issue", completed: true },
-      { id: 2, title: "Identify root cause", completed: true },
-      { id: 3, title: "Implement fix", completed: true },
-      { id: 4, title: "Test on multiple devices", completed: false },
-      { id: 5, title: "Deploy to production", completed: false }
+      { id: 1, title: "Reproduce the issue", completed: true, status: "Completed" },
+      { id: 2, title: "Identify root cause", completed: true, status: "Completed" },
+      { id: 3, title: "Implement fix", completed: true, status: "Completed" },
+      { id: 4, title: "Test on multiple devices", completed: false, status: "In Progress" },
+      { id: 5, title: "Deploy to production", completed: false, status: "To Do" }
     ],
     created_at: "2024-07-08",
     updated_at: "2024-07-11"
@@ -58,9 +58,9 @@ export const sampleTasks: Task[] = [
     due_date: "2024-07-10",
     tags: ["devops", "automation", "deployment"],
     steps: [
-      { id: 1, title: "Setup GitHub Actions", completed: true },
-      { id: 2, title: "Configure testing", completed: true },
-      { id: 3, title: "Setup deployment", completed: true }
+      { id: 1, title: "Setup GitHub Actions", completed: true, status: "Completed" },
+      { id: 2, title: "Configure testing", completed: true, status: "Completed" },
+      { id: 3, title: "Setup deployment", completed: true, status: "Completed" }
     ],
     created_at: "2024-06-28",
     updated_at: "2024-07-09"
@@ -74,11 +74,11 @@ export const sampleTasks: Task[] = [
     due_date: "2024-07-25",
     tags: ["research", "ux", "interviews"],
     steps: [
-      { id: 1, title: "Recruit participants", completed: true },
-      { id: 2, title: "Prepare interview questions", completed: true },
-      { id: 3, title: "Conduct interviews", completed: false },
-      { id: 4, title: "Analyze findings", completed: false },
-      { id: 5, title: "Create summary report", completed: false }
+      { id: 1, title: "Recruit participants", completed: true, status: "Completed" },
+      { id: 2, title: "Prepare interview questions", completed: true, status: "Completed" },
+      { id: 3, title: "Conduct interviews", completed: false, status: "In Progress" },
+      { id: 4, title: "Analyze findings", completed: false, status: "To Do" },
+      { id: 5, title: "Create summary report", completed: false, status: "To Do" }
     ],
     created_at: "2024-07-03",
     updated_at: "2024-07-12"

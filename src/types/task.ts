@@ -1,9 +1,9 @@
-
 export interface TaskStep {
   id: number;
   title: string;
   description?: string;
   completed: boolean;
+  status: 'To Do' | 'In Progress' | 'Completed';
 }
 
 export interface Task {
