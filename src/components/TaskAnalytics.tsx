@@ -1,20 +1,19 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTaskContext } from "@/context/TaskContext";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
 
 const COLORS = {
-  'To Do': '#8884d8',
-  'In Progress': '#82ca9d', 
-  'Review': '#ffc658',
-  'Completed': '#00C49F'
+  'To Do': '#6c757d',
+  'In Progress': '#d33682', 
+  'Review': '#b58900',
+  'Completed': '#2aa198'
 };
 
 const PRIORITY_COLORS = {
-  'Low': '#00C49F',
-  'Medium': '#FFBB28',
-  'High': '#FF8042',
-  'Critical': '#FF0000'
+  'Low': '#2aa198',
+  'Medium': '#b58900',
+  'High': '#cb4b16',
+  'Critical': '#d33682'
 };
 
 export function TaskAnalytics() {
@@ -133,9 +132,9 @@ export function TaskAnalytics() {
               <Line 
                 type="monotone" 
                 dataKey="completed" 
-                stroke="#ff3333" 
+                stroke="#d33682" 
                 strokeWidth={2}
-                dot={{ fill: '#ff3333' }}
+                dot={{ fill: '#d33682' }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -158,16 +157,16 @@ export function TaskAnalytics() {
                 type="monotone" 
                 dataKey="created" 
                 stackId="1"
-                stroke="#ffff00" 
-                fill="#ffff00" 
+                stroke="#2aa198" 
+                fill="#2aa198" 
                 fillOpacity={0.6}
               />
               <Area 
                 type="monotone" 
                 dataKey="completed" 
                 stackId="2"
-                stroke="#ff3333" 
-                fill="#ff3333" 
+                stroke="#d33682" 
+                fill="#d33682" 
                 fillOpacity={0.6}
               />
             </AreaChart>

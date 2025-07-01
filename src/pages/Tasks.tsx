@@ -18,7 +18,7 @@ export default function Tasks() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">All Tasks</h1>
           <p className="text-gray-600">Manage and track all your tasks in one place.</p>
         </div>
-        <Button className="gradient-red text-white hover:opacity-90">
+        <Button className="gradient-primary text-white hover:opacity-90">
           <Plus className="w-4 h-4 mr-2" />
           New Task
         </Button>
@@ -45,7 +45,7 @@ export default function Tasks() {
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
           <p className="text-gray-600 mb-4">Create your first task to get started.</p>
-          <Button className="gradient-red text-white hover:opacity-90">
+          <Button className="gradient-primary text-white hover:opacity-90">
             <Plus className="w-4 h-4 mr-2" />
             Create Task
           </Button>

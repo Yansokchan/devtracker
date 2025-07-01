@@ -8,7 +8,7 @@ interface StatCardProps {
   change?: string;
   changeType?: 'positive' | 'negative' | 'neutral';
   icon: LucideIcon;
-  gradient?: 'red' | 'yellow' | 'blue' | 'green';
+  gradient?: 'primary' | 'secondary' | 'blue' | 'green';
 }
 
 export function StatCard({ 
@@ -17,11 +17,11 @@ export function StatCard({
   change, 
   changeType = 'neutral', 
   icon: Icon,
-  gradient = 'red'
+  gradient = 'primary'
 }: StatCardProps) {
   const gradientClasses = {
-    red: 'gradient-red',
-    yellow: 'gradient-yellow', 
+    primary: 'gradient-primary',
+    secondary: 'gradient-secondary', 
     blue: 'bg-gradient-to-r from-blue-500 to-blue-600',
     green: 'bg-gradient-to-r from-green-500 to-green-600'
   };
