@@ -63,6 +63,10 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
     new Date(task.due_date) < new Date() &&
     task.status !== "Completed";
 
+  const handleDelete = async () => {
+    await deleteTask(task.id);
+  };
+
   return (
     <Card className="card-hover bg-[#f6f4f0]">
       <CardHeader className="pb-3">
@@ -83,7 +87,7 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => deleteTask(task.id)}
+              onClick={handleDelete}
               className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <Trash2 className="w-4 h-4" />

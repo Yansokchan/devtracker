@@ -35,8 +35,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { X, Plus, Edit, Trash2 } from "lucide-react";
 
 const taskSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100, "Title must be less than 100 characters"),
-  description: z.string().min(1, "Description is required").max(500, "Description must be less than 500 characters"),
+  title: z
+    .string()
+    .min(1, "Title is required")
+    .max(100, "Title must be less than 100 characters"),
+  description: z
+    .string()
+    .min(1, "Description is required")
+    .max(500, "Description must be less than 500 characters"),
   priority: z.enum(["Low", "Medium", "High", "Critical"]),
   status: z.enum(["To Do", "In Progress", "Review", "Completed"]),
   due_date: z.string().optional(),
@@ -57,11 +63,15 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const [steps, setSteps] = useState<TaskStep[]>([]);
   const [newStepTitle, setNewStepTitle] = useState("");
   const [newStepDescription, setNewStepDescription] = useState("");
-  const [newStepStatus, setNewStepStatus] = useState<'To Do' | 'In Progress' | 'Completed'>('To Do');
+  const [newStepStatus, setNewStepStatus] = useState<
+    "To Do" | "In Progress" | "Completed"
+  >("To Do");
   const [editingStep, setEditingStep] = useState<number | null>(null);
   const [editStepTitle, setEditStepTitle] = useState("");
   const [editStepDescription, setEditStepDescription] = useState("");
-  const [editStepStatus, setEditStepStatus] = useState<'To Do' | 'In Progress' | 'Completed'>('To Do');
+  const [editStepStatus, setEditStepStatus] = useState<
+    "To Do" | "In Progress" | "Completed"
+  >("To Do");
   const isEdit = !!task;
 
   const form = useForm<TaskFormData>({
@@ -101,9 +111,9 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     }
   }, [isOpen, task, form]);
 
-  const onSubmit = (data: TaskFormData) => {
+  const onSubmit = async (data: TaskFormData) => {
     if (isEdit && task) {
-      updateTask(task.id, {
+      await updateTask(task.id, {
         title: data.title,
         description: data.description,
         priority: data.priority,
@@ -113,7 +123,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         steps: steps,
       });
     } else {
-      addTask({
+      await addTask({
         title: data.title,
         description: data.description,
         priority: data.priority,
@@ -136,54 +146,64 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
 
   const removeTag = (tagToRemove: string) => {
     const currentTags = form.getValues("tags");
-    form.setValue("tags", currentTags.filter(tag => tag !== tagToRemove));
+    form.setValue(
+      "tags",
+      currentTags.filter((tag) => tag !== tagToRemove)
+    );
   };
 
   const addStep = () => {
     if (newStepTitle.trim()) {
       const newStep: TaskStep = {
-        id: Math.max(...steps.map(s => s.id || 0), 0) + 1,
+        id: Math.max(...steps.map((s) => s.id || 0), 0) + 1,
         title: newStepTitle.trim(),
         description: newStepDescription.trim() || undefined,
-        completed: newStepStatus === 'Completed',
+        completed: newStepStatus === "Completed",
         status: newStepStatus,
       };
       setSteps([...steps, newStep]);
       setNewStepTitle("");
       setNewStepDescription("");
-      setNewStepStatus('To Do');
+      setNewStepStatus("To Do");
     }
   };
 
   const removeStep = (stepId: number) => {
-    setSteps(steps.filter(step => step.id !== stepId));
+    setSteps(steps.filter((step) => step.id !== stepId));
   };
 
   const toggleStepCompletion = (stepId: number) => {
-    setSteps(steps.map(step => {
-      if (step.id === stepId) {
-        const newCompleted = !step.completed;
-        return { 
-          ...step, 
-          completed: newCompleted,
-          status: newCompleted ? 'Completed' : 'To Do'
-        };
-      }
-      return step;
-    }));
+    setSteps(
+      steps.map((step) => {
+        if (step.id === stepId) {
+          const newCompleted = !step.completed;
+          return {
+            ...step,
+            completed: newCompleted,
+            status: newCompleted ? "Completed" : "To Do",
+          };
+        }
+        return step;
+      })
+    );
   };
 
-  const updateStepStatus = (stepId: number, status: 'To Do' | 'In Progress' | 'Completed') => {
-    setSteps(steps.map(step => {
-      if (step.id === stepId) {
-        return { 
-          ...step, 
-          status,
-          completed: status === 'Completed'
-        };
-      }
-      return step;
-    }));
+  const updateStepStatus = (
+    stepId: number,
+    status: "To Do" | "In Progress" | "Completed"
+  ) => {
+    setSteps(
+      steps.map((step) => {
+        if (step.id === stepId) {
+          return {
+            ...step,
+            status,
+            completed: status === "Completed",
+          };
+        }
+        return step;
+      })
+    );
   };
 
   const startEditingStep = (step: TaskStep) => {
@@ -195,21 +215,23 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
 
   const saveStepEdit = () => {
     if (editingStep !== null && editStepTitle.trim()) {
-      setSteps(steps.map(step =>
-        step.id === editingStep
-          ? { 
-              ...step, 
-              title: editStepTitle.trim(), 
-              description: editStepDescription.trim() || undefined,
-              status: editStepStatus,
-              completed: editStepStatus === 'Completed'
-            }
-          : step
-      ));
+      setSteps(
+        steps.map((step) =>
+          step.id === editingStep
+            ? {
+                ...step,
+                title: editStepTitle.trim(),
+                description: editStepDescription.trim() || undefined,
+                status: editStepStatus,
+                completed: editStepStatus === "Completed",
+              }
+            : step
+        )
+      );
       setEditingStep(null);
       setEditStepTitle("");
       setEditStepDescription("");
-      setEditStepStatus('To Do');
+      setEditStepStatus("To Do");
     }
   };
 
@@ -217,7 +239,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     setEditingStep(null);
     setEditStepTitle("");
     setEditStepDescription("");
-    setEditStepStatus('To Do');
+    setEditStepStatus("To Do");
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -240,16 +262,20 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
 
   const getStepProgress = () => {
     if (steps.length === 0) return 0;
-    const completedSteps = steps.filter(step => step.completed).length;
+    const completedSteps = steps.filter((step) => step.completed).length;
     return Math.round((completedSteps / steps.length) * 100);
   };
 
   const getStepStatusColor = (status: string) => {
     switch (status) {
-      case 'To Do': return 'bg-gray-100 text-gray-800';
-      case 'In Progress': return 'bg-blue-100 text-blue-800';
-      case 'Completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "To Do":
+        return "bg-gray-100 text-gray-800";
+      case "In Progress":
+        return "bg-blue-100 text-blue-800";
+      case "Completed":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -257,9 +283,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Edit Task" : "Create New Task"}
-          </DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Task" : "Create New Task"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -286,7 +310,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   <FormItem>
                     <FormLabel>Description *</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <Textarea
                         placeholder="Enter task description"
                         className="resize-none"
                         rows={3}
@@ -305,7 +329,10 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Priority</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select priority" />
@@ -329,7 +356,10 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select status" />
@@ -337,7 +367,9 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="To Do">To Do</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="In Progress">
+                            In Progress
+                          </SelectItem>
                           <SelectItem value="Review">Review</SelectItem>
                           <SelectItem value="Completed">Completed</SelectItem>
                         </SelectContent>
@@ -371,13 +403,22 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyPress={handleKeyPress}
                   />
-                  <Button type="button" onClick={addTag} size="icon" variant="outline">
+                  <Button
+                    type="button"
+                    onClick={addTag}
+                    size="icon"
+                    variant="outline"
+                  >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {form.watch("tags").map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center space-x-1">
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="flex items-center space-x-1"
+                    >
                       <span>{tag}</span>
                       <button
                         type="button"
@@ -393,17 +434,20 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
 
               <div className="space-y-3">
                 <FormLabel>Steps</FormLabel>
-                
+
                 {/* Steps Progress Summary */}
                 {steps.length > 0 && (
                   <div className="p-3 bg-gray-50 rounded-lg">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-gray-600">Overall Progress</span>
-                      <span className="text-gray-900 font-medium">{getStepProgress()}%</span>
+                      <span className="text-gray-900 font-medium">
+                        {getStepProgress()}%
+                      </span>
                     </div>
                     <Progress value={getStepProgress()} className="h-2" />
                     <p className="text-xs text-gray-500 mt-1">
-                      {steps.filter(s => s.completed).length} of {steps.length} steps completed
+                      {steps.filter((s) => s.completed).length} of{" "}
+                      {steps.length} steps completed
                     </p>
                   </div>
                 )}
@@ -424,7 +468,12 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                       onKeyPress={handleStepKeyPress}
                       className="col-span-4"
                     />
-                    <Select value={newStepStatus} onValueChange={(value: 'To Do' | 'In Progress' | 'Completed') => setNewStepStatus(value)}>
+                    <Select
+                      value={newStepStatus}
+                      onValueChange={(
+                        value: "To Do" | "In Progress" | "Completed"
+                      ) => setNewStepStatus(value)}
+                    >
                       <SelectTrigger className="col-span-3">
                         <SelectValue />
                       </SelectTrigger>
@@ -434,15 +483,24 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                         <SelectItem value="Completed">Completed</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Button type="button" onClick={addStep} size="icon" variant="outline" className="col-span-1">
+                    <Button
+                      type="button"
+                      onClick={addStep}
+                      size="icon"
+                      variant="outline"
+                      className="col-span-1"
+                    >
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {steps.map((step) => (
-                    <div key={step.id} className="flex items-start space-x-2 p-3 border rounded-lg">
+                    <div
+                      key={step.id}
+                      className="flex items-start space-x-2 p-3 border rounded-lg"
+                    >
                       <Checkbox
                         checked={step.completed}
                         onCheckedChange={() => toggleStepCompletion(step.id)}
@@ -459,25 +517,46 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                             />
                             <Input
                               value={editStepDescription}
-                              onChange={(e) => setEditStepDescription(e.target.value)}
+                              onChange={(e) =>
+                                setEditStepDescription(e.target.value)
+                              }
                               onKeyPress={handleStepKeyPress}
                               placeholder="Step description (optional)"
                             />
-                            <Select value={editStepStatus} onValueChange={(value: 'To Do' | 'In Progress' | 'Completed') => setEditStepStatus(value)}>
+                            <Select
+                              value={editStepStatus}
+                              onValueChange={(
+                                value: "To Do" | "In Progress" | "Completed"
+                              ) => setEditStepStatus(value)}
+                            >
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="To Do">To Do</SelectItem>
-                                <SelectItem value="In Progress">In Progress</SelectItem>
-                                <SelectItem value="Completed">Completed</SelectItem>
+                                <SelectItem value="In Progress">
+                                  In Progress
+                                </SelectItem>
+                                <SelectItem value="Completed">
+                                  Completed
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <div className="flex space-x-2">
-                              <Button type="button" onClick={saveStepEdit} size="sm" variant="outline">
+                              <Button
+                                type="button"
+                                onClick={saveStepEdit}
+                                size="sm"
+                                variant="outline"
+                              >
                                 Save
                               </Button>
-                              <Button type="button" onClick={cancelStepEdit} size="sm" variant="outline">
+                              <Button
+                                type="button"
+                                onClick={cancelStepEdit}
+                                size="sm"
+                                variant="outline"
+                              >
                                 Cancel
                               </Button>
                             </div>
@@ -485,30 +564,50 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                         ) : (
                           <div>
                             <div className="flex items-center justify-between mb-1">
-                              <p className={`font-medium ${step.completed ? 'line-through text-gray-500' : ''}`}>
+                              <p
+                                className={`font-medium ${
+                                  step.completed
+                                    ? "line-through text-gray-500"
+                                    : ""
+                                }`}
+                              >
                                 {step.title}
                               </p>
                               <div className="flex items-center space-x-2">
-                                <Badge className={`text-xs ${getStepStatusColor(step.status)}`}>
+                                <Badge
+                                  className={`text-xs ${getStepStatusColor(
+                                    step.status
+                                  )}`}
+                                >
                                   {step.status}
                                 </Badge>
-                                <Select 
-                                  value={step.status} 
-                                  onValueChange={(value: 'To Do' | 'In Progress' | 'Completed') => updateStepStatus(step.id, value)}
+                                <Select
+                                  value={step.status}
+                                  onValueChange={(
+                                    value: "To Do" | "In Progress" | "Completed"
+                                  ) => updateStepStatus(step.id, value)}
                                 >
                                   <SelectTrigger className="h-6 w-20 text-xs">
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectItem value="To Do">To Do</SelectItem>
-                                    <SelectItem value="In Progress">In Progress</SelectItem>
-                                    <SelectItem value="Completed">Completed</SelectItem>
+                                    <SelectItem value="In Progress">
+                                      In Progress
+                                    </SelectItem>
+                                    <SelectItem value="Completed">
+                                      Completed
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
                             </div>
                             {step.description && (
-                              <p className={`text-sm text-gray-600 ${step.completed ? 'line-through' : ''}`}>
+                              <p
+                                className={`text-sm text-gray-600 ${
+                                  step.completed ? "line-through" : ""
+                                }`}
+                              >
                                 {step.description}
                               </p>
                             )}
