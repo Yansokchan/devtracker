@@ -1,3 +1,4 @@
+
 import { useTaskContext } from "@/context/TaskContext";
 import { StatCard } from "@/components/StatCard";
 import { TaskCard } from "@/components/TaskCard";
@@ -44,7 +45,7 @@ export default function Dashboard() {
           change={`${stats.completionRate}% completion rate`}
           changeType="neutral"
           icon={ListTodo}
-          gradient="primary"
+          gradient="red"
         />
         <StatCard
           title="Completed Today"
@@ -52,7 +53,7 @@ export default function Dashboard() {
           change="Today's achievements"
           changeType="positive"
           icon={Target}
-          gradient="secondary"
+          gradient="green"
         />
         <StatCard
           title="In Progress"
@@ -68,7 +69,7 @@ export default function Dashboard() {
           change="Needs attention"
           changeType={stats.overdue > 0 ? "negative" : "positive"}
           icon={AlertTriangle}
-          gradient="green"
+          gradient="yellow"
         />
       </div>
 
