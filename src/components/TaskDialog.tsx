@@ -93,13 +93,21 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const onSubmit = (data: TaskFormData) => {
     if (isEdit && task) {
       updateTask(task.id, {
-        ...data,
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        status: data.status,
         due_date: data.due_date || undefined,
+        tags: data.tags,
       });
     } else {
       addTask({
-        ...data,
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        status: data.status,
         due_date: data.due_date || undefined,
+        tags: data.tags,
         steps: [],
       });
     }
