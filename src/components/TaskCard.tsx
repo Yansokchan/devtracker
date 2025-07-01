@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,58 +17,60 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'Critical': return 'priority-critical';
-      case 'High': return 'priority-high';
-      case 'Medium': return 'priority-medium';
-      case 'Low': return 'priority-low';
-      default: return 'priority-medium';
+      case "Critical":
+        return "priority-critical";
+      case "High":
+        return "priority-high";
+      case "Medium":
+        return "priority-medium";
+      case "Low":
+        return "priority-low";
+      default:
+        return "priority-medium";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'To Do': return 'status-todo';
-      case 'In Progress': return 'status-progress';
-      case 'Review': return 'status-review';
-      case 'Completed': return 'status-completed';
-      default: return 'status-todo';
+      case "To Do":
+        return "status-todo";
+      case "In Progress":
+        return "status-progress";
+      case "Review":
+        return "status-review";
+      case "Completed":
+        return "status-completed";
+      default:
+        return "status-todo";
     }
   };
 
   const getStepStatusColor = (status: string) => {
     switch (status) {
-      case 'To Do': return 'bg-gray-100 text-gray-800';
-      case 'In Progress': return 'bg-blue-100 text-blue-800';
-      case 'Completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "To Do":
+        return "bg-gray-100 text-gray-800";
+      case "In Progress":
+        return "bg-blue-100 text-blue-800";
+      case "Completed":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'Completed';
+  const isOverdue =
+    task.due_date &&
+    new Date(task.due_date) < new Date() &&
+    task.status !== "Completed";
 
   return (
-    <Card className="card-hover">
+    <Card className="card-hover bg-[#f6f4f0]">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-2">{task.title}</h3>
+            <h3 className="font-medium text-gray-900 mb-2">{task.title}</h3>
             <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-            
-            <div className="flex items-center space-x-2 mb-3">
-              <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
-                {task.priority}
-              </Badge>
-              <Badge className={`text-xs ${getStatusColor(task.status)}`}>
-                {task.status}
-              </Badge>
-              {isOverdue && (
-                <Badge className="text-xs bg-red-100 text-red-800">
-                  Overdue
-                </Badge>
-              )}
-            </div>
           </div>
-          
           <div className="flex space-x-1">
             <Button
               variant="ghost"
@@ -89,8 +90,25 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
             </Button>
           </div>
         </div>
+        <div className="flex items-center space-x-2 mb-3">
+          <Badge
+            className={`text-xs font-light ${getPriorityColor(task.priority)}`}
+          >
+            {task.priority}
+          </Badge>
+          <Badge
+            className={`text-xs font-light ${getStatusColor(task.status)}`}
+          >
+            {task.status}
+          </Badge>
+          {isOverdue && (
+            <Badge className="text-xs font-light bg-red-100 text-red-800">
+              Overdue
+            </Badge>
+          )}
+        </div>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         {/* Progress Bar */}
         {task.steps.length > 0 && (
@@ -101,41 +119,63 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
             </div>
             <Progress value={progress} className="h-2" />
             <p className="text-xs text-gray-500 mt-1">
-              {task.steps.filter(s => s.completed).length} of {task.steps.length} steps completed
+              {task.steps.filter((s) => s.completed).length} of{" "}
+              {task.steps.length} steps completed
             </p>
-            
+
             {/* Step Status Summary */}
             <div className="mt-2 space-y-1">
               {task.steps.slice(0, 3).map((step) => (
-                <div key={step.id} className="flex items-center justify-between text-xs">
+                <div
+                  key={step.id}
+                  className="flex items-center justify-between text-xs"
+                >
                   <div className="flex items-center space-x-2">
-                    <CheckCircle className={`w-3 h-3 ${step.completed ? 'text-green-500' : 'text-gray-300'}`} />
-                    <span className={`truncate max-w-32 ${step.completed ? 'line-through text-gray-500' : ''}`}>
+                    <CheckCircle
+                      className={`w-3 h-3 ${
+                        step.completed ? "text-green-500" : "text-gray-300"
+                      }`}
+                    />
+                    <span
+                      className={`truncate max-w-32 ${
+                        step.completed ? "line-through text-gray-500" : ""
+                      }`}
+                    >
                       {step.title}
                     </span>
                   </div>
-                  <Badge className={`text-xs ${getStepStatusColor(step.status)}`}>
+                  <Badge
+                    className={`text-xs font-light ${getStepStatusColor(
+                      step.status
+                    )}`}
+                  >
                     {step.status}
                   </Badge>
                 </div>
               ))}
               {task.steps.length > 3 && (
-                <p className="text-xs text-gray-500">+{task.steps.length - 3} more steps</p>
+                <p className="text-xs text-gray-500">
+                  +{task.steps.length - 3} more steps
+                </p>
               )}
             </div>
           </div>
         )}
-        
+
         {/* Due Date */}
         {task.due_date && (
           <div className="flex items-center space-x-2 mb-3">
             <Calendar className="w-4 h-4 text-gray-400" />
-            <span className={`text-sm ${isOverdue ? 'text-red-600 font-medium' : 'text-gray-600'}`}>
+            <span
+              className={`text-sm ${
+                isOverdue ? "text-red-600 font-medium" : "text-gray-600"
+              }`}
+            >
               Due {new Date(task.due_date).toLocaleDateString()}
             </span>
           </div>
         )}
-        
+
         {/* Tags */}
         {task.tags.length > 0 && (
           <div className="flex items-center space-x-2">

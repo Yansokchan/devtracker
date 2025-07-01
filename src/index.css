@@ -2,14 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  font-family: "Oxanium", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  font-style: normal;
+}
 /* Professional Warm Theme - Updated to match attached images */
 @layer base {
   :root {
-    /* Font */
-    --font-primary: "Oxanium", sans-serif;
-    --font-secondary: "Merriweather", serif;
-    --font-mono: "Fira Code", monospace;
-
     /* Backgrounds */
     --background: 253 247 247; /* #FDF7F7 */
     --background-secondary: 244 224 201; /* #F4E0C9 */

@@ -1,20 +1,34 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTaskContext } from "@/context/TaskContext";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+} from "recharts";
 
 const COLORS = {
-  'To Do': '#8884d8',
-  'In Progress': '#82ca9d', 
-  'Review': '#ffc658',
-  'Completed': '#00C49F'
+  "To Do": "#8884d8",
+  "In Progress": "#82ca9d",
+  Review: "#ffc658",
+  Completed: "#00C49F",
 };
 
 const PRIORITY_COLORS = {
-  'Low': '#00C49F',
-  'Medium': '#FFBB28',
-  'High': '#FF8042',
-  'Critical': '#FF0000'
+  Low: "#00C49F",
+  Medium: "#FFBB28",
+  High: "#FF8042",
+  Critical: "#FF0000",
 };
 
 export function TaskAnalytics() {
@@ -40,54 +54,59 @@ export function TaskAnalytics() {
   const last7Days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date();
     date.setDate(date.getDate() - (6 - i));
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   });
 
-  const completionTrendData = last7Days.map(date => {
-    const completed = tasks.filter(task => 
-      task.status === 'Completed' && task.updated_at === date
+  const completionTrendData = last7Days.map((date) => {
+    const completed = tasks.filter(
+      (task) => task.status === "Completed" && task.updated_at === date
     ).length;
     return {
-      date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
-      completed
+      date: new Date(date).toLocaleDateString("en-US", { weekday: "short" }),
+      completed,
     };
   });
 
   // Task creation vs completion
-  const creationVsCompletionData = last7Days.map(date => {
-    const created = tasks.filter(task => task.created_at === date).length;
-    const completed = tasks.filter(task => 
-      task.status === 'Completed' && task.updated_at === date
+  const creationVsCompletionData = last7Days.map((date) => {
+    const created = tasks.filter((task) => task.created_at === date).length;
+    const completed = tasks.filter(
+      (task) => task.status === "Completed" && task.updated_at === date
     ).length;
     return {
-      date: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
+      date: new Date(date).toLocaleDateString("en-US", { weekday: "short" }),
       created,
-      completed
+      completed,
     };
   });
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-4">
       {/* Status Distribution Pie Chart */}
-      <Card>
+      <Card className="bg-[#f6f4f0]">
         <CardHeader>
-          <CardTitle>Tasks by Status</CardTitle>
+          <CardTitle className="font-medium">Tasks by Status</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
+            <PieChart className="text-[12px]">
               <Pie
                 data={statusData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ status, count, percent }) => `${status}: ${count} (${(percent * 100).toFixed(0)}%)`}
+                label={({ status, count, percent }) =>
+                  `${status}: ${count} (${(percent * 100).toFixed(0)}%)`
+                }
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"
               >
                 {statusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[entry.status as keyof typeof COLORS]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[entry.status as keyof typeof COLORS]}
+                  />
                 ))}
               </Pie>
               <Tooltip />
@@ -97,12 +116,12 @@ export function TaskAnalytics() {
       </Card>
 
       {/* Priority Distribution Bar Chart */}
-      <Card>
+      <Card className="bg-[#f6f4f0]">
         <CardHeader>
-          <CardTitle>Tasks by Priority</CardTitle>
+          <CardTitle className="font-medium">Tasks by Priority</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="90%" height={300}>
             <BarChart data={priorityData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="priority" />
@@ -110,7 +129,14 @@ export function TaskAnalytics() {
               <Tooltip />
               <Bar dataKey="count" fill="#8884d8">
                 {priorityData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.priority as keyof typeof PRIORITY_COLORS]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={
+                      PRIORITY_COLORS[
+                        entry.priority as keyof typeof PRIORITY_COLORS
+                      ]
+                    }
+                  />
                 ))}
               </Bar>
             </BarChart>
@@ -119,9 +145,11 @@ export function TaskAnalytics() {
       </Card>
 
       {/* Completion Trend Line Chart */}
-      <Card>
+      <Card className="bg-[#f6f4f0]">
         <CardHeader>
-          <CardTitle>Tasks Completed Over Time</CardTitle>
+          <CardTitle className="font-medium">
+            Tasks Completed Over Time
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -130,12 +158,12 @@ export function TaskAnalytics() {
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Line 
-                type="monotone" 
-                dataKey="completed" 
-                stroke="#ff3333" 
+              <Line
+                type="monotone"
+                dataKey="completed"
+                stroke="#ff3333"
                 strokeWidth={2}
-                dot={{ fill: '#ff3333' }}
+                dot={{ fill: "#ff3333" }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -143,9 +171,11 @@ export function TaskAnalytics() {
       </Card>
 
       {/* Creation vs Completion Area Chart */}
-      <Card>
+      <Card className="bg-[#f6f4f0]">
         <CardHeader>
-          <CardTitle>Task Creation vs Completion</CardTitle>
+          <CardTitle className="font-medium">
+            Task Creation vs Completion
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -154,20 +184,20 @@ export function TaskAnalytics() {
               <XAxis dataKey="date" />
               <YAxis />
               <Tooltip />
-              <Area 
-                type="monotone" 
-                dataKey="created" 
+              <Area
+                type="monotone"
+                dataKey="created"
                 stackId="1"
-                stroke="#ffff00" 
-                fill="#ffff00" 
+                stroke="#ffff00"
+                fill="#ffff00"
                 fillOpacity={0.6}
               />
-              <Area 
-                type="monotone" 
-                dataKey="completed" 
+              <Area
+                type="monotone"
+                dataKey="completed"
                 stackId="2"
-                stroke="#ff3333" 
-                fill="#ff3333" 
+                stroke="#ff3333"
+                fill="#ff3333"
                 fillOpacity={0.6}
               />
             </AreaChart>

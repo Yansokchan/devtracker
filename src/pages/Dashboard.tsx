@@ -1,15 +1,14 @@
-
 import { useTaskContext } from "@/context/TaskContext";
 import { StatCard } from "@/components/StatCard";
 import { TaskCard } from "@/components/TaskCard";
 import { TaskAnalytics } from "@/components/TaskAnalytics";
-import { 
-  ListTodo, 
-  Target, 
-  Clock, 
+import {
+  ListTodo,
+  Target,
+  Clock,
   AlertTriangle,
   TrendingUp,
-  Calendar
+  Calendar,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -19,14 +18,18 @@ export default function Dashboard() {
 
   // Get recent tasks (last 5)
   const recentTasks = tasks
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    )
     .slice(0, 5);
 
   // Get today's tasks
-  const today = new Date().toISOString().split('T')[0];
-  const todaysTasks = tasks.filter(task => 
-    task.due_date === today || 
-    (task.status === 'Completed' && task.updated_at === today)
+  const today = new Date().toISOString().split("T")[0];
+  const todaysTasks = tasks.filter(
+    (task) =>
+      task.due_date === today ||
+      (task.status === "Completed" && task.updated_at === today)
   );
 
   return (
@@ -34,7 +37,9 @@ export default function Dashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here's what's happening with your tasks.</p>
+        <p className="text-gray-600">
+          Welcome back! Here's what's happening with your tasks.
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -49,7 +54,7 @@ export default function Dashboard() {
         />
         <StatCard
           title="Completed Today"
-          value={todaysTasks.filter(t => t.status === 'Completed').length}
+          value={todaysTasks.filter((t) => t.status === "Completed").length}
           change="Today's achievements"
           changeType="positive"
           icon={Target}
@@ -75,11 +80,11 @@ export default function Dashboard() {
 
       {/* Progress Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 bg-[#fcfbf8]">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <TrendingUp className="w-5 h-5" />
-              <span>Analytics Overview</span>
+              <span className="font-medium">Analytics Overview</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -89,20 +94,24 @@ export default function Dashboard() {
 
         <div className="space-y-6">
           {/* Today's Tasks */}
-          <Card>
+          <Card className="bg-[#fcfbf8]">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Calendar className="w-5 h-5" />
-                <span>Today's Focus</span>
+                <span className="font-medium">Today's Focus</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               {todaysTasks.length > 0 ? (
                 <div className="space-y-3">
-                  {todaysTasks.slice(0, 3).map(task => (
-                    <div key={task.id} className="p-3 bg-gray-50 rounded-lg">
-                      <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
-                      <p className="text-xs text-gray-600 mt-1">{task.status}</p>
+                  {todaysTasks.slice(0, 3).map((task) => (
+                    <div key={task.id} className="p-3 bg-[#f6f4f0] rounded-lg">
+                      <h4 className="font-medium text-sm text-gray-900">
+                        {task.title}
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {task.status}
+                      </p>
                     </div>
                   ))}
                   {todaysTasks.length > 3 && (
@@ -118,19 +127,19 @@ export default function Dashboard() {
           </Card>
 
           {/* Quick Actions */}
-          <Card>
+          <Card className="bg-[#fcfbf8]">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="font-medium">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
+                <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
                   + Create new task
                 </button>
-                <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
+                <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
                   📊 View all analytics
                 </button>
-                <button className="w-full text-left p-2 hover:bg-gray-50 rounded text-sm">
+                <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
                   📅 Check due dates
                 </button>
               </div>
@@ -140,13 +149,13 @@ export default function Dashboard() {
       </div>
 
       {/* Recent Tasks */}
-      <Card>
+      <Card className="bg-[#fcfbf8]">
         <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
+          <CardTitle className="font-medium">Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recentTasks.map(task => (
+            {recentTasks.map((task) => (
               <TaskCard key={task.id} task={task} />
             ))}
           </div>

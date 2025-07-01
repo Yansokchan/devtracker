@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,46 +16,46 @@ export function SearchAndFilters() {
   const { filters, setFilters, tasks } = useTaskContext();
   const [showFilters, setShowFilters] = useState(false);
 
-  const allTags = Array.from(new Set(tasks.flatMap(task => task.tags)));
-  
+  const allTags = Array.from(new Set(tasks.flatMap((task) => task.tags)));
+
   const handleStatusFilter = (status: string) => {
     if (filters.status.includes(status)) {
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        status: prev.status.filter(s => s !== status)
+        status: prev.status.filter((s) => s !== status),
       }));
     } else {
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        status: [...prev.status, status]
+        status: [...prev.status, status],
       }));
     }
   };
 
   const handlePriorityFilter = (priority: string) => {
     if (filters.priority.includes(priority)) {
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        priority: prev.priority.filter(p => p !== priority)
+        priority: prev.priority.filter((p) => p !== priority),
       }));
     } else {
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        priority: [...prev.priority, priority]
+        priority: [...prev.priority, priority],
       }));
     }
   };
 
   const handleTagFilter = (tag: string) => {
     if (filters.tags.includes(tag)) {
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        tags: prev.tags.filter(t => t !== tag)
+        tags: prev.tags.filter((t) => t !== tag),
       }));
     } else {
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        tags: [...prev.tags, tag]
+        tags: [...prev.tags, tag],
       }));
     }
   };
@@ -65,15 +64,16 @@ export function SearchAndFilters() {
     setFilters({
       status: [],
       priority: [],
-      search: '',
-      tags: []
+      search: "",
+      tags: [],
     });
   };
 
-  const activeFiltersCount = filters.status.length + filters.priority.length + filters.tags.length;
+  const activeFiltersCount =
+    filters.status.length + filters.priority.length + filters.tags.length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       {/* Search Bar */}
       <div className="flex space-x-2">
         <div className="relative flex-1">
@@ -81,19 +81,25 @@ export function SearchAndFilters() {
           <Input
             placeholder="Search tasks..."
             value={filters.search}
-            onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+            onChange={(e) =>
+              setFilters((prev) => ({ ...prev, search: e.target.value }))
+            }
             className="pl-10"
           />
         </div>
         <Button
           variant="outline"
           onClick={() => setShowFilters(!showFilters)}
-          className={`${activeFiltersCount > 0 ? 'bg-primary/10 border-primary' : ''}`}
+          className={`${
+            activeFiltersCount > 0 ? "bg-primary/10 border-primary" : ""
+          }`}
         >
           <Filter className="w-4 h-4 mr-2" />
           Filters
           {activeFiltersCount > 0 && (
-            <Badge className="ml-2 bg-primary text-white">{activeFiltersCount}</Badge>
+            <Badge className="ml-2 bg-primary text-white">
+              {activeFiltersCount}
+            </Badge>
           )}
         </Button>
       </div>
@@ -112,12 +118,16 @@ export function SearchAndFilters() {
 
           {/* Status Filters */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Status</label>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              Status
+            </label>
             <div className="flex flex-wrap gap-2">
-              {['To Do', 'In Progress', 'Review', 'Completed'].map(status => (
+              {["To Do", "In Progress", "Review", "Completed"].map((status) => (
                 <Badge
                   key={status}
-                  variant={filters.status.includes(status) ? "default" : "outline"}
+                  variant={
+                    filters.status.includes(status) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
                   onClick={() => handleStatusFilter(status)}
                 >
@@ -129,12 +139,16 @@ export function SearchAndFilters() {
 
           {/* Priority Filters */}
           <div>
-            <label className="text-sm font-medium text-gray-700 mb-2 block">Priority</label>
+            <label className="text-sm font-medium text-gray-700 mb-2 block">
+              Priority
+            </label>
             <div className="flex flex-wrap gap-2">
-              {['Low', 'Medium', 'High', 'Critical'].map(priority => (
+              {["Low", "Medium", "High", "Critical"].map((priority) => (
                 <Badge
                   key={priority}
-                  variant={filters.priority.includes(priority) ? "default" : "outline"}
+                  variant={
+                    filters.priority.includes(priority) ? "default" : "outline"
+                  }
                   className="cursor-pointer"
                   onClick={() => handlePriorityFilter(priority)}
                 >
@@ -147,9 +161,11 @@ export function SearchAndFilters() {
           {/* Tag Filters */}
           {allTags.length > 0 && (
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">Tags</label>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Tags
+              </label>
               <div className="flex flex-wrap gap-2">
-                {allTags.map(tag => (
+                {allTags.map((tag) => (
                   <Badge
                     key={tag}
                     variant={filters.tags.includes(tag) ? "default" : "outline"}
@@ -168,29 +184,29 @@ export function SearchAndFilters() {
       {/* Active Filters Display */}
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap gap-2">
-          {filters.status.map(status => (
+          {filters.status.map((status) => (
             <Badge key={status} className="bg-blue-100 text-blue-800">
               Status: {status}
-              <X 
-                className="w-3 h-3 ml-1 cursor-pointer" 
+              <X
+                className="w-3 h-3 ml-1 cursor-pointer"
                 onClick={() => handleStatusFilter(status)}
               />
             </Badge>
           ))}
-          {filters.priority.map(priority => (
+          {filters.priority.map((priority) => (
             <Badge key={priority} className="bg-orange-100 text-orange-800">
               Priority: {priority}
-              <X 
-                className="w-3 h-3 ml-1 cursor-pointer" 
+              <X
+                className="w-3 h-3 ml-1 cursor-pointer"
                 onClick={() => handlePriorityFilter(priority)}
               />
             </Badge>
           ))}
-          {filters.tags.map(tag => (
+          {filters.tags.map((tag) => (
             <Badge key={tag} className="bg-green-100 text-green-800">
               Tag: {tag}
-              <X 
-                className="w-3 h-3 ml-1 cursor-pointer" 
+              <X
+                className="w-3 h-3 ml-1 cursor-pointer"
                 onClick={() => handleTagFilter(tag)}
               />
             </Badge>

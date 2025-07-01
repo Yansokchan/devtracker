@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useTaskContext } from "@/context/TaskContext";
 import { TaskCard } from "@/components/TaskCard";
@@ -34,9 +33,14 @@ export default function Tasks() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">All Tasks</h1>
-          <p className="text-gray-600">Manage and track all your tasks in one place.</p>
+          <p className="text-gray-600">
+            Manage and track all your tasks in one place.
+          </p>
         </div>
-        <Button onClick={handleNewTask} className="gradient-primary text-white hover:opacity-90">
+        <Button
+          onClick={handleNewTask}
+          className="gradient-primary text-white hover:opacity-90"
+        >
           <Plus className="w-4 h-4 mr-2" />
           New Task
         </Button>
@@ -47,12 +51,8 @@ export default function Tasks() {
 
       {/* Tasks Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTasks.map(task => (
-          <TaskCard 
-            key={task.id} 
-            task={task} 
-            onEdit={handleEditTask}
-          />
+        {filteredTasks.map((task) => (
+          <TaskCard key={task.id} task={task} onEdit={handleEditTask} />
         ))}
       </div>
 
@@ -61,9 +61,16 @@ export default function Tasks() {
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Plus className="w-8 h-8 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
-          <p className="text-gray-600 mb-4">Create your first task to get started.</p>
-          <Button onClick={handleNewTask} className="gradient-primary text-white hover:opacity-90">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No tasks found
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Create your first task to get started.
+          </p>
+          <Button
+            onClick={handleNewTask}
+            className="gradient-primary text-white hover:opacity-90"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Task
           </Button>
