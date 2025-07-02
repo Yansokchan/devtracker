@@ -21,6 +21,7 @@ interface TaskContextType {
     overdue: number;
     completionRate: number;
   };
+  loading: boolean;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -43,10 +44,12 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
     search: "",
     tags: [],
   });
+  const [loading, setLoading] = useState(true);
 
   // Fetch tasks and steps from Supabase
   useEffect(() => {
     const fetchTasks = async () => {
+      setLoading(true);
       // Fetch all tasks
       const { data: tasksData, error: tasksError } = await supabase
         .from("tasks")
@@ -55,6 +58,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
       if (tasksError) {
         console.error("Error fetching tasks:", tasksError);
         setTasks([]);
+        setLoading(false);
         return;
       }
       // Fetch all steps
@@ -79,6 +83,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         tags: task.tags || [],
       }));
       setTasks(tasksWithSteps);
+      setLoading(false);
     };
     fetchTasks();
   }, []);
@@ -288,6 +293,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         deleteTask,
         getTaskProgress,
         getOverallStats,
+        loading,
       }}
     >
       {children}

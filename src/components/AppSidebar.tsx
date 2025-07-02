@@ -51,7 +51,7 @@ export function AppSidebar() {
       : "bg-[#B45309] transition-colors duration-300";
 
   return (
-    <Sidebar className={open ? "w-64" : "w-16"} collapsible="icon">
+    <Sidebar className={open ? "w-64" : "w-20"} collapsible="icon">
       <SidebarContent className="bg-[#FFFFFF] border-r border-[#dcd5c4]">
         {/* Header */}
         <div className="p-4">
@@ -62,7 +62,9 @@ export function AppSidebar() {
             {open && (
               <div>
                 <h1 className="font-bold text-lg text-gray-900">TaskFlow</h1>
-                <p className="text-xs text-gray-600">Pro Dashboard</p>
+                <p className="text-xs text-gray-600">
+                  <span className="text-[#B45309]">Pro </span>Dashboard
+                </p>
               </div>
             )}
           </div>
@@ -73,7 +75,7 @@ export function AppSidebar() {
           <div className="p-4 border-t-2 border-[#dcd5c4]">
             <Button
               onClick={() => setIsTaskDialogOpen(true)}
-              className="w-full gradient-primary text-white hover:opacity-90 transition-opacity"
+              className="w-full gradient-primary text-white hover:opacity-90 transition-opacity border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add New Task

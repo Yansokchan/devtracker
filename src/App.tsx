@@ -27,12 +27,12 @@ const App = () => (
               <div className="flex-1 flex flex-col">
                 {/* Header */}
                 <header className="h-16 w-full bg-[#FFFFFF] border-b-2 border-[#dcd5c4] flex items-center px-6 fixed top-0 z-10">
-                  <SidebarTrigger className="mr-4" />
+                  <SidebarTrigger className="mr-4 text-[#B45309]" />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <h2 className="text-lg font-semibold text-gray-900">
-                          TaskFlow Pro
+                          TaskFlow <span className="text-[#B45309]">Pro</span>
                         </h2>
                       </div>
                       <div className="flex items-center space-x-4">

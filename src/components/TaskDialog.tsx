@@ -33,6 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { X, Plus, Edit, Trash2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const taskSchema = z.object({
   title: z
@@ -73,6 +74,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     "To Do" | "In Progress" | "Completed"
   >("To Do");
   const isEdit = !!task;
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -112,28 +114,33 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   }, [isOpen, task, form]);
 
   const onSubmit = async (data: TaskFormData) => {
-    if (isEdit && task) {
-      await updateTask(task.id, {
-        title: data.title,
-        description: data.description,
-        priority: data.priority,
-        status: data.status,
-        due_date: data.due_date || undefined,
-        tags: data.tags,
-        steps: steps,
-      });
-    } else {
-      await addTask({
-        title: data.title,
-        description: data.description,
-        priority: data.priority,
-        status: data.status,
-        due_date: data.due_date || undefined,
-        tags: data.tags,
-        steps: steps,
-      });
+    setLoading(true);
+    try {
+      if (isEdit && task) {
+        await updateTask(task.id, {
+          title: data.title,
+          description: data.description,
+          priority: data.priority,
+          status: data.status,
+          due_date: data.due_date || undefined,
+          tags: data.tags,
+          steps: steps,
+        });
+      } else {
+        await addTask({
+          title: data.title,
+          description: data.description,
+          priority: data.priority,
+          status: data.status,
+          due_date: data.due_date || undefined,
+          tags: data.tags,
+          steps: steps,
+        });
+      }
+      onClose();
+    } finally {
+      setLoading(false);
     }
-    onClose();
   };
 
   const addTag = () => {
@@ -409,7 +416,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                     size="icon"
                     variant="outline"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4 text-[#B45309]" />
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -490,7 +497,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                       variant="outline"
                       className="col-span-1"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-4 h-4 text-[#B45309]" />
                     </Button>
                   </div>
                 </div>
@@ -641,11 +648,30 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button
+                className="text-[#B45309]"
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={loading}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="gradient-primary text-white">
-                {isEdit ? "Update Task" : "Create Task"}
+              <Button
+                type="submit"
+                className="gradient-primary text-white border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Skeleton className="w-4 h-4 bg-white/60" />
+                    {isEdit ? "Updating..." : "Creating..."}
+                  </span>
+                ) : isEdit ? (
+                  "Update Task"
+                ) : (
+                  "Create Task"
+                )}
               </Button>
             </DialogFooter>
           </form>

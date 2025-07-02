@@ -57,24 +57,35 @@ export function TaskAnalytics() {
     return date.toISOString().split("T")[0];
   });
 
+  // Two-letter weekday abbreviations
+  const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+
   const completionTrendData = last7Days.map((date) => {
     const completed = tasks.filter(
-      (task) => task.status === "Completed" && task.updated_at === date
+      (task) =>
+        task.status === "Completed" &&
+        task.updated_at &&
+        task.updated_at.split("T")[0] === date
     ).length;
     return {
-      date: new Date(date).toLocaleDateString("en-US", { weekday: "short" }),
+      date: WEEKDAYS[new Date(date).getDay()],
       completed,
     };
   });
 
   // Task creation vs completion
   const creationVsCompletionData = last7Days.map((date) => {
-    const created = tasks.filter((task) => task.created_at === date).length;
+    const created = tasks.filter(
+      (task) => task.created_at && task.created_at.split("T")[0] === date
+    ).length;
     const completed = tasks.filter(
-      (task) => task.status === "Completed" && task.updated_at === date
+      (task) =>
+        task.status === "Completed" &&
+        task.updated_at &&
+        task.updated_at.split("T")[0] === date
     ).length;
     return {
-      date: new Date(date).toLocaleDateString("en-US", { weekday: "short" }),
+      date: WEEKDAYS[new Date(date).getDay()],
       created,
       completed,
     };

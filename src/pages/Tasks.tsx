@@ -6,9 +6,10 @@ import { TaskDialog } from "@/components/TaskDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Task } from "@/types/task";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Tasks() {
-  const { filteredTasks } = useTaskContext();
+  const { filteredTasks, loading } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -39,7 +40,7 @@ export default function Tasks() {
         </div>
         <Button
           onClick={handleNewTask}
-          className="gradient-primary text-white hover:opacity-90"
+          className="gradient-primary text-white hover:opacity-90 border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
         >
           <Plus className="w-4 h-4 mr-2" />
           New Task
@@ -51,12 +52,16 @@ export default function Tasks() {
 
       {/* Tasks Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTasks.map((task) => (
-          <TaskCard key={task.id} task={task} onEdit={handleEditTask} />
-        ))}
+        {loading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))
+          : filteredTasks.map((task) => (
+              <TaskCard key={task.id} task={task} onEdit={handleEditTask} />
+            ))}
       </div>
 
-      {filteredTasks.length === 0 && (
+      {!loading && filteredTasks.length === 0 && (
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Plus className="w-8 h-8 text-gray-400" />

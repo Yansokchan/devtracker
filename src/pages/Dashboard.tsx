@@ -11,9 +11,10 @@ import {
   Calendar,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Dashboard() {
-  const { tasks, getOverallStats } = useTaskContext();
+  const { tasks, getOverallStats, loading } = useTaskContext();
   const stats = getOverallStats();
 
   // Get recent tasks (last 5)
@@ -44,38 +45,46 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Tasks"
-          value={stats.total}
-          change={`${stats.completionRate}% completion rate`}
-          changeType="neutral"
-          icon={ListTodo}
-          gradient="red"
-        />
-        <StatCard
-          title="Completed Today"
-          value={todaysTasks.filter((t) => t.status === "Completed").length}
-          change="Today's achievements"
-          changeType="positive"
-          icon={Target}
-          gradient="green"
-        />
-        <StatCard
-          title="In Progress"
-          value={stats.inProgress}
-          change="Active tasks"
-          changeType="neutral"
-          icon={Clock}
-          gradient="blue"
-        />
-        <StatCard
-          title="Overdue"
-          value={stats.overdue}
-          change="Needs attention"
-          changeType={stats.overdue > 0 ? "negative" : "positive"}
-          icon={AlertTriangle}
-          gradient="yellow"
-        />
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 w-full" />
+          ))
+        ) : (
+          <>
+            <StatCard
+              title="Total Tasks"
+              value={stats.total}
+              change={`${stats.completionRate}% completion rate`}
+              changeType="neutral"
+              icon={ListTodo}
+              gradient="red"
+            />
+            <StatCard
+              title="Completed Today"
+              value={todaysTasks.filter((t) => t.status === "Completed").length}
+              change="Today's achievements"
+              changeType="positive"
+              icon={Target}
+              gradient="green"
+            />
+            <StatCard
+              title="In Progress"
+              value={stats.inProgress}
+              change="Active tasks"
+              changeType="neutral"
+              icon={Clock}
+              gradient="blue"
+            />
+            <StatCard
+              title="Overdue"
+              value={stats.overdue}
+              change="Needs attention"
+              changeType={stats.overdue > 0 ? "negative" : "positive"}
+              icon={AlertTriangle}
+              gradient="yellow"
+            />
+          </>
+        )}
       </div>
 
       {/* Progress Overview */}
@@ -88,7 +97,7 @@ export default function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <TaskAnalytics />
+            {loading ? <Skeleton className="h-40 w-full" /> : <TaskAnalytics />}
           </CardContent>
         </Card>
 
@@ -102,7 +111,9 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {todaysTasks.length > 0 ? (
+              {loading ? (
+                <Skeleton className="h-24 w-full" />
+              ) : todaysTasks.length > 0 ? (
                 <div className="space-y-3">
                   {todaysTasks.slice(0, 3).map((task) => (
                     <div key={task.id} className="p-3 bg-[#f6f4f0] rounded-lg">
@@ -132,17 +143,21 @@ export default function Dashboard() {
               <CardTitle className="font-medium">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
-                  + Create new task
-                </button>
-                <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
-                  📊 View all analytics
-                </button>
-                <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
-                  📅 Check due dates
-                </button>
-              </div>
+              {loading ? (
+                <Skeleton className="h-24 w-full" />
+              ) : (
+                <div className="space-y-2">
+                  <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
+                    + Create new task
+                  </button>
+                  <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
+                    📊 View all analytics
+                  </button>
+                  <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
+                    📅 Check due dates
+                  </button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -155,9 +170,13 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recentTasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
+            {loading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-24 w-full" />
+                ))
+              : recentTasks.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
           </div>
         </CardContent>
       </Card>
