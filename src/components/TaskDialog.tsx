@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -332,6 +333,11 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Task" : "Create New Task"}</DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? "Update the details of your task below."
+              : "Fill in the details to create a new task."}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
