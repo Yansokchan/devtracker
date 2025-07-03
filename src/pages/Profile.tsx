@@ -59,7 +59,7 @@ export default function Profile({ user }: { user: any }) {
         </div>
         <button
           type="submit"
-          className="w-full bg-[#B45309] text-white py-2 rounded font-semibold hover:bg-[#a05a13] transition"
+          className="w-full bg-[#B45309] text-white py-2 rounded font-medium hover:bg-[#a05a13] transition"
           disabled={saving}
         >
           {saving ? "Saving..." : "Save Changes"}
