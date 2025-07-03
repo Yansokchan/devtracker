@@ -701,7 +701,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
               </div>
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex gap-2 sm:gap-0">
               <Button
                 className="text-[#B45309]"
                 type="button"
