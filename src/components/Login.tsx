@@ -52,7 +52,7 @@ export default function Login() {
                 />
               </g>
             </svg>
-            Continue in with Google
+            Continue with Google
           </button>
           <button
             onClick={() => handleLogin("github")}
