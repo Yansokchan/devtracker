@@ -32,7 +32,7 @@ const App = () => (
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <h2 className="text-lg font-semibold text-gray-900">
-                          TaskFlow <span className="text-[#B45309]">Pro</span>
+                          TaskFlow <span className="text-[#B45309]">PRO</span>
                         </h2>
                       </div>
                       <div className="flex items-center space-x-4">

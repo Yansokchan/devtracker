@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
+import CountUp from "@/components/ui/CountUp";
 
 interface StatCardProps {
   title: string;
@@ -8,6 +9,7 @@ interface StatCardProps {
   changeType?: "positive" | "negative" | "neutral";
   icon: LucideIcon;
   gradient?: "red" | "yellow" | "blue" | "green";
+  textColor?: string;
 }
 
 export function StatCard({
@@ -17,6 +19,7 @@ export function StatCard({
   changeType = "neutral",
   icon: Icon,
   gradient = "red",
+  textColor = "text-gray-900",
 }: StatCardProps) {
   const gradientClasses = {
     red: "text-[#A16207]",
@@ -34,19 +37,34 @@ export function StatCard({
   return (
     <Card className="card-hover bg-[#f6f4f0]">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600">
+        <CardTitle className={`text-sm ${textColor} font-medium`}>
           {title}
         </CardTitle>
         <div
-          className={`w-10 h-10 rounded-lg bg-[#F1E9DA] flex items-center justify-center`}
+          className={`w-10 h-10 rounded-lg flex items-center justify-center`}
         >
           <Icon className={`w-5 h-5 ${gradientClasses[gradient]}`} />
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
+        <div
+          className={`text-2xl font-bold ${textColor} transition-transform duration-700 ease-out will-change-transform animate-slide-top`}
+          style={{ display: "inline-block" }}
+        >
+          <CountUp
+            to={typeof value === "number" ? value : parseFloat(value)}
+            duration={1.2}
+            separator=","
+            onStart={() => {}}
+            onEnd={() => {}}
+          />
+        </div>
         {change && (
-          <p className={`text-xs ${changeColors[changeType]} mt-1`}>{change}</p>
+          <p
+            className={`text-xs ${textColor} ${changeColors[changeType]} mt-1`}
+          >
+            {change}
+          </p>
         )}
       </CardContent>
     </Card>

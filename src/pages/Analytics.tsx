@@ -3,6 +3,7 @@ import { useTaskContext } from "@/context/TaskContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, TrendingUp, Target, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import CountUp from "@/components/ui/CountUp";
 
 export default function Analytics() {
   const { tasks, getOverallStats, loading } = useTaskContext();
@@ -49,7 +50,18 @@ export default function Analytics() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
-                  {completionVelocity}%
+                  <CountUp
+                    to={
+                      typeof completionVelocity === "string"
+                        ? parseFloat(completionVelocity)
+                        : 0
+                    }
+                    duration={1.2}
+                    separator=","
+                    onStart={() => {}}
+                    onEnd={() => {}}
+                  />
+                  %
                 </div>
                 <p className="text-xs text-gray-600 mt-1">
                   {stats.completed} of {stats.total} tasks completed
@@ -66,7 +78,17 @@ export default function Analytics() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
-                  {avgTasksPerDay}
+                  <CountUp
+                    to={
+                      typeof avgTasksPerDay === "string"
+                        ? parseFloat(avgTasksPerDay)
+                        : 0
+                    }
+                    duration={1.2}
+                    separator=","
+                    onStart={() => {}}
+                    onEnd={() => {}}
+                  />
                 </div>
                 <p className="text-xs text-gray-600 mt-1">
                   Based on last 30 days
@@ -83,7 +105,17 @@ export default function Analytics() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
-                  {avgStepsPerTask}
+                  <CountUp
+                    to={
+                      typeof avgStepsPerTask === "string"
+                        ? parseFloat(avgStepsPerTask)
+                        : 0
+                    }
+                    duration={1.2}
+                    separator=","
+                    onStart={() => {}}
+                    onEnd={() => {}}
+                  />
                 </div>
                 <p className="text-xs text-gray-600 mt-1">
                   {tasksWithSteps.length} tasks with steps
@@ -100,7 +132,13 @@ export default function Analytics() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
-                  {stats.inProgress}
+                  <CountUp
+                    to={stats.inProgress}
+                    duration={1.2}
+                    separator=","
+                    onStart={() => {}}
+                    onEnd={() => {}}
+                  />
                 </div>
                 <p className="text-xs text-gray-600 mt-1">
                   Currently in progress

@@ -47,8 +47,8 @@ export function AppSidebar() {
 
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive
-      ? " text-primary font-medium border-r-2 border-primary transition-colors duration-300"
-      : "bg-[#B45309] transition-colors duration-300";
+      ? "text-[#B45309] font-medium border-r-1 border-b-1 border-l-1 border-t-1 border-[#E4C090] transition-colors duration-300"
+      : "transition-colors duration-300";
 
   return (
     <Sidebar className={open ? "w-64" : "w-20"} collapsible="icon">
@@ -90,7 +90,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url} className={getNavCls}>
                       <item.icon className="w-4 h-4" />
                       {open && <span>{item.title}</span>}

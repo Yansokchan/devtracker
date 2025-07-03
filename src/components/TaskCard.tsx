@@ -5,15 +5,30 @@ import { Progress } from "@/components/ui/progress";
 import { Task } from "@/types/task";
 import { Edit, Trash2, Calendar, Tag, CheckCircle } from "lucide-react";
 import { useTaskContext } from "@/context/TaskContext";
+import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 interface TaskCardProps {
   task: Task;
   onEdit?: (task: Task) => void;
+  hideActions?: boolean;
 }
 
-export function TaskCard({ task, onEdit }: TaskCardProps) {
+export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
   const { deleteTask, getTaskProgress } = useTaskContext();
   const progress = getTaskProgress(task);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -65,6 +80,10 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
 
   const handleDelete = async () => {
     await deleteTask(task.id);
+    toast({
+      title: "Task deleted",
+      description: `Task '${task.title}' was deleted successfully.`,
+    });
   };
 
   return (
@@ -75,24 +94,47 @@ export function TaskCard({ task, onEdit }: TaskCardProps) {
             <h3 className="font-medium text-gray-900 mb-2">{task.title}</h3>
             <p className="text-sm text-gray-600 mb-3">{task.description}</p>
           </div>
-          <div className="flex space-x-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit?.(task)}
-              className="h-8 w-8 p-0"
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+          {!hideActions && (
+            <div className="flex space-x-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit?.(task)}
+                className="h-8 w-8 p-0"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+              <AlertDialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
+              >
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this task? This action
+                      cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>
+                      Yes, delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
         </div>
         <div className="flex items-center space-x-2 mb-3">
           <Badge

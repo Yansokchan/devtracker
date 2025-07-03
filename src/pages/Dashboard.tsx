@@ -30,7 +30,7 @@ export default function Dashboard() {
   const todaysTasks = tasks.filter(
     (task) =>
       task.due_date === today ||
-      (task.status === "Completed" && task.updated_at === today)
+      (task.status === "Completed" && task.updated_at.split("T")[0] === today)
   );
 
   return (
@@ -58,6 +58,7 @@ export default function Dashboard() {
               changeType="neutral"
               icon={ListTodo}
               gradient="red"
+              textColor="text-[#B45309]"
             />
             <StatCard
               title="Completed Today"
@@ -66,6 +67,7 @@ export default function Dashboard() {
               changeType="positive"
               icon={Target}
               gradient="green"
+              textColor="text-green-700"
             />
             <StatCard
               title="In Progress"
@@ -74,6 +76,7 @@ export default function Dashboard() {
               changeType="neutral"
               icon={Clock}
               gradient="blue"
+              textColor="text-blue-700"
             />
             <StatCard
               title="Overdue"
@@ -82,6 +85,7 @@ export default function Dashboard() {
               changeType={stats.overdue > 0 ? "negative" : "positive"}
               icon={AlertTriangle}
               gradient="yellow"
+              textColor="text-red-700"
             />
           </>
         )}
@@ -175,7 +179,7 @@ export default function Dashboard() {
                   <Skeleton key={i} className="h-24 w-full" />
                 ))
               : recentTasks.map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard key={task.id} task={task} hideActions={true} />
                 ))}
           </div>
         </CardContent>

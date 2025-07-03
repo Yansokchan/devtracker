@@ -34,6 +34,18 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { X, Plus, Edit, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 const taskSchema = z.object({
   title: z
@@ -75,6 +87,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   >("To Do");
   const isEdit = !!task;
   const [loading, setLoading] = useState(false);
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -111,10 +124,25 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       });
       setSteps([]);
     }
+    setShowUpdateConfirm(false);
   }, [isOpen, task, form]);
 
   const onSubmit = async (data: TaskFormData) => {
     setLoading(true);
+    // Validation: If task has steps, all must be completed before marking as Completed
+    if (
+      steps.length > 0 &&
+      data.status === "Completed" &&
+      steps.some((step) => !step.completed)
+    ) {
+      toast({
+        title: "Cannot complete task",
+        description:
+          "All steps must be completed before marking the task as completed.",
+      });
+      setLoading(false);
+      return;
+    }
     try {
       if (isEdit && task) {
         await updateTask(task.id, {
@@ -126,6 +154,10 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
           tags: data.tags,
           steps: steps,
         });
+        toast({
+          title: "Task updated",
+          description: `Task '${data.title}' was updated successfully.`,
+        });
       } else {
         await addTask({
           title: data.title,
@@ -136,11 +168,20 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
           tags: data.tags,
           steps: steps,
         });
+        toast({
+          title: "Task created",
+          description: `Task '${data.title}' was created successfully.`,
+        });
       }
       onClose();
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdate = (data: TaskFormData) => {
+    setShowUpdateConfirm(true);
+    // on confirmation, call onSubmit(data)
   };
 
   const addTag = () => {
@@ -294,7 +335,14 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={
+              isEdit
+                ? form.handleSubmit(handleUpdate)
+                : form.handleSubmit(onSubmit)
+            }
+            className="space-y-6"
+          >
             <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
@@ -345,7 +393,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                             <SelectValue placeholder="Select priority" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-[#fdf7f7]">
                           <SelectItem value="Low">Low</SelectItem>
                           <SelectItem value="Medium">Medium</SelectItem>
                           <SelectItem value="High">High</SelectItem>
@@ -372,7 +420,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
+                        <SelectContent className="bg-[#fdf7f7]">
                           <SelectItem value="To Do">To Do</SelectItem>
                           <SelectItem value="In Progress">
                             In Progress
@@ -484,7 +532,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                       <SelectTrigger className="col-span-3">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#fdf7f7]">
                         <SelectItem value="To Do">To Do</SelectItem>
                         <SelectItem value="In Progress">In Progress</SelectItem>
                         <SelectItem value="Completed">Completed</SelectItem>
@@ -539,7 +587,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent>
+                              <SelectContent className="bg-[#fdf7f7]">
                                 <SelectItem value="To Do">To Do</SelectItem>
                                 <SelectItem value="In Progress">
                                   In Progress
@@ -597,7 +645,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                                   <SelectTrigger className="h-6 w-20 text-xs">
                                     <SelectValue />
                                   </SelectTrigger>
-                                  <SelectContent>
+                                  <SelectContent className="bg-[#fdf7f7]">
                                     <SelectItem value="To Do">To Do</SelectItem>
                                     <SelectItem value="In Progress">
                                       In Progress
@@ -657,22 +705,66 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                className="gradient-primary text-white border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <Skeleton className="w-4 h-4 bg-white/60" />
-                    {isEdit ? "Updating..." : "Creating..."}
-                  </span>
-                ) : isEdit ? (
-                  "Update Task"
-                ) : (
-                  "Create Task"
-                )}
-              </Button>
+              {isEdit ? (
+                <AlertDialog
+                  open={showUpdateConfirm}
+                  onOpenChange={setShowUpdateConfirm}
+                >
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="submit"
+                      className="gradient-primary text-white border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <span className="flex items-center gap-2">
+                          <Skeleton className="w-4 h-4 bg-white/60" />
+                          Updating...
+                        </span>
+                      ) : (
+                        "Update Task"
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirm Update</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to update this task? This action
+                        cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
+                        {loading ? (
+                          <span className="flex items-center gap-2">
+                            <Skeleton className="w-4 h-4 bg-white/60" />
+                            Updating...
+                          </span>
+                        ) : (
+                          "Yes, update"
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <Button
+                  type="submit"
+                  className="gradient-primary text-white border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <Skeleton className="w-4 h-4 bg-white/60" />
+                      Creating...
+                    </span>
+                  ) : (
+                    "Create Task"
+                  )}
+                </Button>
+              )}
             </DialogFooter>
           </form>
         </Form>
