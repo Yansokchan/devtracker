@@ -6,8 +6,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen mx-5 flex items-center justify-center bg-gradient-to-br from-[#f8f5f0] to-[#f3e7d9]">
-      <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-md flex flex-col items-center border border-[#ecd7b6]">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f8f5f0] to-[#f3e7d9]">
+      <div className="bg-white mx-5 rounded-2xl shadow-2xl p-10 w-full max-w-md flex flex-col items-center border border-[#ecd7b6]">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-[#B45309] mb-2 tracking-tight">
             DevTracker <span className="text-gray-900">PRO</span>
