@@ -713,7 +713,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   <AlertDialogTrigger asChild>
                     <Button
                       type="submit"
-                      className="gradient-primary text-white border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                      className="gradient-primary border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba] text-white"
                       disabled={loading}
                     >
                       {loading ? (
@@ -736,7 +736,10 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
+                      <AlertDialogAction
+                        onClick={form.handleSubmit(onSubmit)}
+                        className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                      >
                         {loading ? (
                           <span className="flex items-center gap-2">
                             <Skeleton className="w-4 h-4 bg-white/60" />

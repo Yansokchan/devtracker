@@ -18,6 +18,16 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface TaskCardProps {
   task: Task;
@@ -29,6 +39,7 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
   const { deleteTask, getTaskProgress } = useTaskContext();
   const progress = getTaskProgress(task);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -96,6 +107,153 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
           </div>
           {!hideActions && (
             <div className="flex space-x-1">
+              <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    aria-label="View details"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-lg">
+                  <DialogHeader>
+                    <DialogTitle>{task.title}</DialogTitle>
+                    <DialogDescription>{task.description}</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex flex-wrap gap-2">
+                      <Badge
+                        className={`text-xs font-light ${getPriorityColor(
+                          task.priority
+                        )}`}
+                      >
+                        {task.priority}
+                      </Badge>
+                      <Badge
+                        className={`text-xs font-light ${getStatusColor(
+                          task.status
+                        )}`}
+                      >
+                        {task.status}
+                      </Badge>
+                      {isOverdue && (
+                        <Badge className="text-xs font-light bg-red-100 text-red-800">
+                          Overdue
+                        </Badge>
+                      )}
+                    </div>
+                    {task.due_date && (
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span
+                          className={`text-sm ${
+                            isOverdue
+                              ? "text-red-600 font-medium"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          Due {new Date(task.due_date).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                    {task.tags.length > 0 && (
+                      <div className="flex items-center space-x-2">
+                        <Tag className="w-4 h-4 text-gray-400" />
+                        <div className="flex flex-wrap gap-1">
+                          {task.tags.map((tag, index) => (
+                            <span
+                              key={index}
+                              className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-md"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-4">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-600">Progress</span>
+                        <span className="text-gray-900 font-medium">
+                          {progress}%
+                        </span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {task.steps.filter((s) => s.completed).length} of{" "}
+                        {task.steps.length} steps completed
+                      </p>
+                    </div>
+                    <div className="mt-4">
+                      <h4 className="font-medium text-sm mb-2">Steps</h4>
+                      <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                        {task.steps.length === 0 && (
+                          <p className="text-xs text-gray-500">No steps.</p>
+                        )}
+                        {task.steps.map((step) => (
+                          <div
+                            key={step.id}
+                            className="flex items-center justify-between text-xs"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <CheckCircle
+                                className={`w-3 h-3 ${
+                                  step.completed
+                                    ? "text-green-500"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                              <span
+                                className={`truncate max-w-48 ${
+                                  step.completed
+                                    ? "line-through text-gray-500"
+                                    : ""
+                                }`}
+                              >
+                                {step.title}
+                              </span>
+                            </div>
+                            <Badge
+                              className={`text-xs font-light ${getStepStatusColor(
+                                step.status
+                              )}`}
+                            >
+                              {step.status}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Close</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
               <Button
                 variant="ghost"
                 size="sm"
@@ -127,7 +285,10 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                    >
                       Yes, delete
                     </AlertDialogAction>
                   </AlertDialogFooter>

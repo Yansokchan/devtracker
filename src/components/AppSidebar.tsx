@@ -10,7 +10,7 @@ import {
   Clock,
   AlertTriangle,
 } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -26,6 +26,8 @@ import {
 import { useTaskContext } from "@/context/TaskContext";
 import { Button } from "@/components/ui/button";
 import { TaskDialog } from "@/components/TaskDialog";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { supabase } from "../lib/supabaseClient";
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -35,12 +37,13 @@ const navigationItems = [
   // { title: "Settings", url: "/settings", icon: Settings },
 ];
 
-export function AppSidebar() {
+export function AppSidebar({ user }: { user: any }) {
   const { open } = useSidebar();
   const location = useLocation();
   const { getOverallStats } = useTaskContext();
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const stats = getOverallStats();
+  const navigate = useNavigate();
 
   const currentPath = location.pathname;
   const isActive = (path: string) => currentPath === path;
@@ -52,7 +55,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className={open ? "w-64" : "w-20"} collapsible="icon">
-      <SidebarContent className="bg-[#FFFFFF] border-r border-[#dcd5c4]">
+      <SidebarContent className="bg-[#FFFFFF] border-r border-[#dcd5c4] flex flex-col h-full">
         {/* Header */}
         <div className="p-4">
           <div className="flex items-center space-x-2">
@@ -151,6 +154,49 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        <div className="flex-1" />
+        {/* User Info at the bottom */}
+        <div className="p-4 border-t border-[#dcd5c4] flex items-center space-x-3">
+          <Avatar className="w-12 h-12">
+            <AvatarImage
+              src={user?.user_metadata?.avatar_url}
+              alt={user?.user_metadata?.full_name || user?.email}
+            />
+            <AvatarFallback>
+              {user?.user_metadata?.full_name
+                ? user.user_metadata.full_name
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("")
+                : user?.email?.[0]?.toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          {open && (
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-medium text-gray-900 truncate">
+                {user?.user_metadata?.full_name || "No Name"}
+              </span>
+              <span className="text-xs text-gray-500 truncate">
+                {user?.email}
+              </span>
+              <div className="flex mt-2 gap-2">
+                <button
+                  className="px-3 py-1 rounded bg-[#B45309] text-white hover:bg-[#a05a13] transition text-xs font-medium border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                  onClick={() => navigate("/profile")}
+                >
+                  Profile
+                </button>
+                <button
+                  className="px-3 py-1 rounded bg-[#E4D9BC] text-gray-800 hover:bg-gray-300 transition text-xs font-medium border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                  onClick={() => supabase.auth.signOut()}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </SidebarContent>
 
       {/* Task Dialog */}

@@ -111,3 +111,40 @@ body {
 }
 
 /* Gradients, shadows, and other utility classes can be added here as needed */
+
+/* Custom Scrollbar Styling */
+@layer base {
+  /* Webkit browsers */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    background: rgb(var(--border));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--primary) / 0.5);
+  }
+  /* Remove up/down buttons (arrows) */
+  ::-webkit-scrollbar-button {
+    display: none;
+    height: 0;
+    width: 0;
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border)) transparent;
+  }
+  /* Dark mode */
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgb(var(--border));
+    border: 2px solid transparent;
+  }
+  .dark * {
+    scrollbar-color: rgb(var(--border)) transparent;
+  }
+}

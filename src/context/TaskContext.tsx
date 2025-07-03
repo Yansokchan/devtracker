@@ -34,9 +34,10 @@ export const useTaskContext = () => {
   return context;
 };
 
-export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const TaskProvider: React.FC<{
+  children: React.ReactNode;
+  user?: any;
+}> = ({ children, user }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filters, setFilters] = useState<TaskFilters>({
     status: [],
@@ -50,10 +51,16 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const fetchTasks = async () => {
       setLoading(true);
-      // Fetch all tasks
+      if (!user) {
+        setTasks([]);
+        setLoading(false);
+        return;
+      }
+      // Fetch tasks for the current user only
       const { data: tasksData, error: tasksError } = await supabase
         .from("tasks")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       if (tasksError) {
         console.error("Error fetching tasks:", tasksError);
@@ -86,7 +93,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(false);
     };
     fetchTasks();
-  }, []);
+  }, [user]);
 
   // Filter tasks based on current filters
   const filteredTasks = tasks.filter((task) => {
@@ -119,6 +126,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   const addTask = async (
     taskData: Omit<Task, "id" | "created_at" | "updated_at">
   ) => {
+    if (!user) {
+      console.error("No user found for adding task");
+      return;
+    }
     // Insert task
     const { data: insertedTask, error: taskError } = await supabase
       .from("tasks")
@@ -129,6 +140,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
         status: taskData.status,
         due_date: taskData.due_date || null,
         tags: taskData.tags,
+        user_id: user.id,
       })
       .select()
       .single();
