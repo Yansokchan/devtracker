@@ -231,10 +231,11 @@ export const TaskProvider: React.FC<{
         }
       }
     }
-    // Refetch all tasks
+    // Refetch all tasks (for current user only)
     const { data: tasksData, error: tasksError } = await supabase
       .from("tasks")
       .select("*")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false });
     const { data: stepsData } = await supabase.from("task_steps").select("*");
     const tasksWithSteps: Task[] = (tasksData || []).map((task: any) => ({
