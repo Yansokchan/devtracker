@@ -16,6 +16,7 @@ import Login from "./components/Login";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from "./pages/Profile";
+import ActivityHistory from "./pages/ActivityHistory";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,14 @@ const App = () => {
                         element={
                           <ProtectedRoute user={user}>
                             <Profile user={user} />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/activity-history"
+                        element={
+                          <ProtectedRoute user={user}>
+                            <ActivityHistory />
                           </ProtectedRoute>
                         }
                       />

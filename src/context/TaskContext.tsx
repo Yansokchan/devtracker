@@ -22,6 +22,10 @@ interface TaskContextType {
     completionRate: number;
   };
   loading: boolean;
+  activityLogs: any[];
+  setActivityLogs: React.Dispatch<React.SetStateAction<any[]>>;
+  loadingActivityLogs: boolean;
+  fetchActivityLogs: (limit?: number) => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -46,8 +50,30 @@ export const TaskProvider: React.FC<{
     tags: [],
   });
   const [loading, setLoading] = useState(true);
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [loadingActivityLogs, setLoadingActivityLogs] = useState(false);
 
-  // Fetch tasks and steps from Supabase
+  const fetchActivityLogs = async (limit = 50) => {
+    if (!user) {
+      setActivityLogs([]);
+      return;
+    }
+    setLoadingActivityLogs(true);
+    const { data, error } = await supabase
+      .from("activity_logs")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) {
+      console.error("Error fetching activity logs:", error);
+      setActivityLogs([]);
+    } else {
+      setActivityLogs(data || []);
+    }
+    setLoadingActivityLogs(false);
+  };
+
   useEffect(() => {
     const fetchTasks = async () => {
       setLoading(true);
@@ -56,7 +82,6 @@ export const TaskProvider: React.FC<{
         setLoading(false);
         return;
       }
-      // Fetch tasks for the current user only
       const { data: tasksData, error: tasksError } = await supabase
         .from("tasks")
         .select("*")
@@ -68,14 +93,12 @@ export const TaskProvider: React.FC<{
         setLoading(false);
         return;
       }
-      // Fetch all steps
       const { data: stepsData, error: stepsError } = await supabase
         .from("task_steps")
         .select("*");
       if (stepsError) {
         console.error("Error fetching steps:", stepsError);
       }
-      // Combine steps into tasks
       const tasksWithSteps: Task[] = (tasksData || []).map((task: any) => ({
         ...task,
         steps: (stepsData || [])
@@ -93,9 +116,39 @@ export const TaskProvider: React.FC<{
       setLoading(false);
     };
     fetchTasks();
+    fetchActivityLogs();
   }, [user]);
 
-  // Filter tasks based on current filters
+  // --- Real-time subscription for activity_logs ---
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("realtime-activity-logs")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "activity_logs",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          if (payload.new) {
+            setActivityLogs((prev) => {
+              // Prevent duplicates
+              if (prev.find((log) => log.id === payload.new.id)) return prev;
+              return [payload.new, ...prev];
+            });
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+  // --- End real-time subscription ---
+
   const filteredTasks = tasks.filter((task) => {
     if (filters.status.length > 0 && !filters.status.includes(task.status)) {
       return false;
@@ -122,7 +175,6 @@ export const TaskProvider: React.FC<{
     return true;
   });
 
-  // Add a new task and its steps
   const addTask = async (
     taskData: Omit<Task, "id" | "created_at" | "updated_at">
   ) => {
@@ -130,7 +182,6 @@ export const TaskProvider: React.FC<{
       console.error("No user found for adding task");
       return;
     }
-    // Insert task
     const { data: insertedTask, error: taskError } = await supabase
       .from("tasks")
       .insert({
@@ -148,7 +199,6 @@ export const TaskProvider: React.FC<{
       console.error("Error adding task:", taskError);
       return;
     }
-    // Insert steps
     let steps: TaskStep[] = [];
     if (taskData.steps && taskData.steps.length > 0) {
       const { data: insertedSteps, error: stepsError } = await supabase
@@ -183,11 +233,26 @@ export const TaskProvider: React.FC<{
       },
       ...prev,
     ]);
+    try {
+      await logActivity(
+        "create",
+        insertedTask.id.toString(),
+        `Created task: ${insertedTask.title}`,
+        insertedTask.title
+      );
+    } catch (e) {
+      console.error("Failed to log activity:", e);
+    }
   };
 
-  // Update a task and its steps
   const updateTask = async (id: number, updates: Partial<Task>) => {
-    // Update task
+    // Get the current task to compare changes
+    const currentTask = tasks.find((task) => task.id === id);
+    if (!currentTask) {
+      console.error("Task not found for update");
+      return;
+    }
+
     const { error: taskError } = await supabase
       .from("tasks")
       .update({
@@ -204,9 +269,79 @@ export const TaskProvider: React.FC<{
       console.error("Error updating task:", taskError);
       return;
     }
-    // Update steps: delete all and re-insert (simple approach)
+
+    // Log specific field changes
+    try {
+      if (updates.status && updates.status !== currentTask.status) {
+        await logTaskUpdate(
+          id,
+          "Status",
+          currentTask.status,
+          updates.status,
+          currentTask.title
+        );
+      }
+      if (updates.priority && updates.priority !== currentTask.priority) {
+        await logTaskUpdate(
+          id,
+          "Priority",
+          currentTask.priority,
+          updates.priority,
+          currentTask.title
+        );
+      }
+      if (
+        updates.due_date !== undefined &&
+        updates.due_date !== currentTask.due_date
+      ) {
+        const oldDate = currentTask.due_date || "No due date";
+        const newDate = updates.due_date || "No due date";
+        await logTaskUpdate(
+          id,
+          "Due date",
+          oldDate,
+          newDate,
+          currentTask.title
+        );
+      }
+      if (updates.title && updates.title !== currentTask.title) {
+        await logTaskUpdate(
+          id,
+          "Title",
+          currentTask.title,
+          updates.title,
+          currentTask.title
+        );
+      }
+      if (
+        updates.description &&
+        updates.description !== currentTask.description
+      ) {
+        await logTaskUpdate(
+          id,
+          "Description",
+          "Previous description",
+          "Updated description",
+          currentTask.title
+        );
+      }
+      if (
+        updates.tags &&
+        JSON.stringify(updates.tags) !== JSON.stringify(currentTask.tags)
+      ) {
+        await logTaskUpdate(
+          id,
+          "Tags",
+          currentTask.tags.join(", ") || "No tags",
+          updates.tags.join(", ") || "No tags",
+          currentTask.title
+        );
+      }
+    } catch (e) {
+      console.error("Failed to log specific changes:", e);
+    }
+
     if (updates.steps) {
-      // Delete old steps
       const { error: delError } = await supabase
         .from("task_steps")
         .delete()
@@ -214,7 +349,6 @@ export const TaskProvider: React.FC<{
       if (delError) {
         console.error("Error deleting old steps:", delError);
       }
-      // Insert new steps
       if (updates.steps.length > 0) {
         const { error: insError } = await supabase.from("task_steps").insert(
           updates.steps.map((step, idx) => ({
@@ -230,8 +364,46 @@ export const TaskProvider: React.FC<{
           console.error("Error inserting new steps:", insError);
         }
       }
+
+      // Log step changes
+      try {
+        // Log added steps
+        const oldStepTitles = currentTask.steps.map((s) => s.title);
+        const newStepTitles = updates.steps.map((s) => s.title);
+        const addedSteps = newStepTitles.filter(
+          (title) => !oldStepTitles.includes(title)
+        );
+        if (addedSteps.length > 0) {
+          await logTaskUpdate(
+            id,
+            "Steps added",
+            "-",
+            addedSteps.join(", "),
+            currentTask.title
+          );
+        }
+
+        // Log completed step count change
+        const oldCompletedSteps = currentTask.steps.filter(
+          (step) => step.completed
+        ).length;
+        const newCompletedSteps = updates.steps.filter(
+          (step) => step.completed
+        ).length;
+        if (oldCompletedSteps !== newCompletedSteps) {
+          await logTaskUpdate(
+            id,
+            "Step status",
+            `${oldCompletedSteps} completed`,
+            `${newCompletedSteps} completed`,
+            currentTask.title
+          );
+        }
+      } catch (e) {
+        console.error("Failed to log step changes:", e);
+      }
     }
-    // Refetch all tasks (for current user only)
+
     const { data: tasksData, error: tasksError } = await supabase
       .from("tasks")
       .select("*")
@@ -254,15 +426,27 @@ export const TaskProvider: React.FC<{
     setTasks(tasksWithSteps);
   };
 
-  // Delete a task and its steps
   const deleteTask = async (id: number) => {
-    // Delete task (steps will cascade)
+    // Get task title before deletion for logging
+    const taskToDelete = tasks.find((task) => task.id === id);
+    const taskTitle = taskToDelete?.title || `Task ${id}`;
+
     const { error } = await supabase.from("tasks").delete().eq("id", id);
     if (error) {
       console.error("Error deleting task:", error);
       return;
     }
     setTasks((prev) => prev.filter((task) => task.id !== id));
+    try {
+      await logActivity(
+        "delete",
+        id.toString(),
+        `Deleted task: ${taskTitle}`,
+        taskTitle
+      );
+    } catch (e) {
+      console.error("Failed to log activity:", e);
+    }
   };
 
   const getTaskProgress = (task: Task): number => {
@@ -307,9 +491,64 @@ export const TaskProvider: React.FC<{
         getTaskProgress,
         getOverallStats,
         loading,
+        activityLogs,
+        setActivityLogs,
+        loadingActivityLogs,
+        fetchActivityLogs,
       }}
     >
       {children}
     </TaskContext.Provider>
   );
 };
+
+async function logActivity(
+  action: string,
+  taskId: string,
+  details?: string,
+  taskTitle?: string
+) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error("User not authenticated");
+  }
+  await supabase.from("activity_logs").insert([
+    {
+      user_id: user.id,
+      task_id: taskId,
+      action,
+      details,
+      task_title: taskTitle,
+    },
+  ]);
+}
+
+async function logTaskUpdate(
+  taskId: number,
+  field: string,
+  oldValue: any,
+  newValue: any,
+  taskTitle?: string
+) {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error("User not authenticated");
+  }
+
+  const details = `${field}: ${oldValue} → ${newValue}`;
+  await supabase.from("activity_logs").insert([
+    {
+      user_id: user.id,
+      task_id: taskId.toString(),
+      action: "edit",
+      details,
+      task_title: taskTitle,
+    },
+  ]);
+}

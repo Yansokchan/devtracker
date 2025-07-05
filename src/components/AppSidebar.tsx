@@ -31,10 +31,10 @@ import { supabase } from "../lib/supabaseClient";
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "All Tasks", url: "/tasks", icon: ListTodo },
+  { title: "Manage Tasks", url: "/tasks", icon: ListTodo },
   // { title: "My Tasks", url: "/my-tasks", icon: User },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  // { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Activity Logs", url: "/activity-history", icon: Settings },
 ];
 
 export function AppSidebar({ user }: { user: any }) {
@@ -63,18 +63,18 @@ export function AppSidebar({ user }: { user: any }) {
       <Sidebar className={open ? "w-64" : "w-20"} collapsible="icon">
         <SidebarContent className="bg-[#FFFFFF] border-r border-[#dcd5c4] flex flex-col h-full">
           {/* Header */}
-          <div className="p-4">
+          <div className="p-2">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
                 <Target className="w-5 h-5 text-[#92582b]" />
               </div>
               {open && (
                 <div>
-                  <h1 className="font-bold text-lg text-gray-900">
+                  <h1 className="font-semibold text-2xl text-gray-900">
                     DevTracker
                   </h1>
                   <p className="text-xs text-gray-600">
-                    <span className="text-[#B45309]">Pro </span>Dashboard
+                    <span className="text-[#B45309]">PRO </span>Dashboard
                   </p>
                 </div>
               )}
@@ -82,7 +82,7 @@ export function AppSidebar({ user }: { user: any }) {
           </div>
 
           {/* Quick Add Button */}
-          {open && (
+          {/* {open && (
             <div className="p-4 border-t-2 border-[#dcd5c4]">
               <Button
                 onClick={() => {
@@ -99,10 +99,10 @@ export function AppSidebar({ user }: { user: any }) {
                 Add New Task
               </Button>
             </div>
-          )}
+          )} */}
 
           {/* Navigation */}
-          <SidebarGroup>
+          <SidebarGroup className=" border-t-2 border-[#dcd5c4]">
             <SidebarGroupLabel>Navigation</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -176,7 +176,7 @@ export function AppSidebar({ user }: { user: any }) {
           <div className="flex-1" />
           {/* User Info at the bottom */}
           {open && (
-            <div className="p-4 border-t-2 border-[#dcd5c4] flex items-center space-x-3">
+            <div className="p-2 border-t-2 border-[#dcd5c4] flex items-center justify-center space-x-3">
               <Avatar className="w-12 h-12">
                 <AvatarImage
                   src={user?.user_metadata?.avatar_url}
