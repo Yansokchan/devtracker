@@ -90,11 +90,20 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
     task.status !== "Completed";
 
   const handleDelete = async () => {
-    await deleteTask(task.id);
-    toast({
-      title: "Task deleted",
-      description: `Task '${task.title}' was deleted successfully.`,
-    });
+    console.log("Deleting task:", task.id, task.title);
+    try {
+      await deleteTask(task.id);
+      toast({
+        title: "Task deleted",
+        description: `Task '${task.title}' was deleted successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete task. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

@@ -39,7 +39,8 @@ export default function ActivityHistory() {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
-  const { activityLogs, loadingActivityLogs, tasks } = useTaskContext();
+  const { activityLogs, loadingActivityLogs, tasks, fetchActivityLogs } =
+    useTaskContext();
 
   const getTaskTitle = (log: ActivityLog): string => {
     // Prefer the denormalized task_title if present
@@ -144,7 +145,6 @@ export default function ActivityHistory() {
         );
       })
     : activityLogs;
-
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -158,7 +158,7 @@ export default function ActivityHistory() {
                 variant="outline"
                 onClick={() => setDatePopoverOpen(true)}
               >
-                <Filter className="w-4 h-4 mr-2" />
+                <Filter className="w-4 h-4" />
                 {selectedDate
                   ? `Date: ${format(selectedDate, "PPP")}`
                   : "Filter"}
