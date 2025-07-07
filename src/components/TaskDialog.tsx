@@ -47,6 +47,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { Slider } from "@/components/ui/slider";
 
 const taskSchema = z.object({
   title: z
@@ -94,6 +95,8 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const [loading, setLoading] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [tagCount, setTagCount] = useState(3); // default 3 tags
+  const [stepCount, setStepCount] = useState(5); // default 5 steps
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -345,7 +348,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     }
     setAiLoading(true);
     try {
-      const prompt = `Given the following task title and description, generate:\n1. A list of up to 5 relevant tags (as a JSON array of strings).\n2. A list of up to 5 step objects (as a JSON array (description is optional)), each with \"title\" and \"description\".\n\nTask Title: ${title}\nTask Description: ${description}\n\nRespond with only valid JSON, no explanation, no markdown, and no code block.\n{\n  \"tags\": [...],\n  \"steps\": [{\"title\": \"...\", \"description\": \"...\"}, ...]\n}`;
+      const prompt = `Given the following task title and description, generate:\n1. A list of exactly ${tagCount} relevant tags (as a JSON array of strings).\n2. A list of exactly ${stepCount} step objects (as a JSON array), each with \"title\" and \"description\".\n\nTask Title: ${title}\nTask Description: ${description}\n\nRespond with only valid JSON, no explanation, no markdown, and no code block.\n{\n  \"tags\": [...],\n  \"steps\": [{\"title\": \"...\", \"description\": \"...\"}, ...]\n}`;
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -781,20 +784,62 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   ))}
                 </div>
               </div>
+
+              <div className="space-y-3">
+                <FormLabel>AI Generation Settings</FormLabel>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs text-gray-600">
+                        Number of Tags
+                      </span>
+                      <span className="text-xs text-gray-900 font-medium">
+                        {tagCount}
+                      </span>
+                    </div>
+                    <Slider
+                      min={1}
+                      max={5}
+                      step={1}
+                      value={[tagCount]}
+                      onValueChange={([val]) => setTagCount(val)}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs text-gray-600">
+                        Number of Steps
+                      </span>
+                      <span className="text-xs text-gray-900 font-medium">
+                        {stepCount}
+                      </span>
+                    </div>
+                    <Slider
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={[stepCount]}
+                      onValueChange={([val]) => setStepCount(val)}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <Button
               type="button"
               onClick={handleAIGenerate}
               disabled={aiLoading}
-              className="mb-4"
+              className="mb-4 border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
             >
-              {aiLoading ? "Generating..." : "AI Generate Tags & Steps"}
+              {aiLoading ? "Generating..." : "Generate"}
             </Button>
 
             <DialogFooter className="flex gap-2 sm:gap-0">
               <Button
-                className="text-[#B45309]"
+                className="text-[#B45309] border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
                 type="button"
                 variant="outline"
                 onClick={onClose}

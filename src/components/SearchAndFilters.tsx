@@ -84,7 +84,7 @@ export function SearchAndFilters() {
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, search: e.target.value }))
             }
-            className="pl-10"
+            className="pl-10 w-full"
           />
         </div>
         <Button
