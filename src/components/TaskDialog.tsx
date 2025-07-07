@@ -71,6 +71,10 @@ interface TaskDialogProps {
   task?: Task | null;
 }
 
+const GEMINI_API_KEY =
+  import.meta.env.VITE_GEMINI_API_KEY ||
+  "AIzaSyCnI5o3lH6wxynyJuMlO50j60g1kgDdHUY"; // Place your Gemini API key in .env as VITE_GEMINI_API_KEY
+
 export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const { addTask, updateTask } = useTaskContext();
   const [newTag, setNewTag] = useState("");
@@ -89,6 +93,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const isEdit = !!task;
   const [loading, setLoading] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -325,6 +330,83 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleAIGenerate = async () => {
+    const { title, description } = form.getValues();
+    if (!title || !description) {
+      toast({
+        title: "Please enter a title and description first.",
+        variant: "destructive",
+        className: "bg-[#f8f4ee] shadow-lg",
+      });
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const prompt = `Given the following task title and description, generate:\n1. A list of up to 5 relevant tags (as a JSON array of strings).\n2. A list of up to 5 step objects (as a JSON array (description is optional)), each with \"title\" and \"description\".\n\nTask Title: ${title}\nTask Description: ${description}\n\nRespond with only valid JSON, no explanation, no markdown, and no code block.\n{\n  \"tags\": [...],\n  \"steps\": [{\"title\": \"...\", \"description\": \"...\"}, ...]\n}`;
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to fetch AI suggestions");
+      const data = await response.json();
+      console.log("Gemini API raw response:", data);
+
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      console.log("Gemini API text:", text);
+
+      // Extract JSON from markdown code block if present
+      let jsonText = text;
+      const codeBlockMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (codeBlockMatch) {
+        jsonText = codeBlockMatch[1];
+      }
+      let suggestions;
+      try {
+        suggestions = JSON.parse(jsonText);
+      } catch (e) {
+        console.error("Failed to parse AI response as JSON:", jsonText);
+        throw new Error("AI response was not valid JSON");
+      }
+
+      if (Array.isArray(suggestions.tags)) {
+        form.setValue("tags", suggestions.tags);
+      }
+      if (Array.isArray(suggestions.steps)) {
+        setSteps(
+          suggestions.steps.map((step: any, idx: number) => ({
+            id: Date.now() + idx,
+            title: step.title,
+            description: step.description,
+            completed: false,
+            status: "To Do",
+          }))
+        );
+      }
+      toast({
+        title: "AI Suggestions Applied",
+        description: "Tags and steps have been generated.",
+        className: "bg-[#f8f4ee] shadow-lg",
+      });
+    } catch (error) {
+      toast({
+        title: "AI Error",
+        description: "Failed to generate suggestions. Please try again.",
+        variant: "destructive",
+        className: "bg-[#f8f4ee] shadow-lg",
+      });
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -700,6 +782,15 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                 </div>
               </div>
             </div>
+
+            <Button
+              type="button"
+              onClick={handleAIGenerate}
+              disabled={aiLoading}
+              className="mb-4"
+            >
+              {aiLoading ? "Generating..." : "AI Generate Tags & Steps"}
+            </Button>
 
             <DialogFooter className="flex gap-2 sm:gap-0">
               <Button
