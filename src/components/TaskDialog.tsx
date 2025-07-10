@@ -50,6 +50,11 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import PlanCards from "./PlanCards";
+import {
+  Dialog as PlanDialog,
+  DialogContent as PlanDialogContent,
+} from "@/components/ui/dialog";
 
 const taskSchema = z.object({
   title: z
@@ -106,6 +111,8 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const [taskLimit, setTaskLimit] = useState<number | null>(null);
   const [taskLimitLoading, setTaskLimitLoading] = useState(false);
   const [showTaskLimitAlert, setShowTaskLimitAlert] = useState(false);
+  const [showPlanCardsDialog, setShowPlanCardsDialog] = useState(false);
+  const [planCardsUser, setPlanCardsUser] = useState<any>(null);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -650,6 +657,15 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     }
   };
 
+  // When opening PlanCards dialog, fetch user
+  const openPlanCardsDialog = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    setPlanCardsUser(user);
+    setShowPlanCardsDialog(true);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -1125,9 +1141,9 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => {
+                    onClick={async () => {
                       setShowPlanAlert(false);
-                      navigate("/profile");
+                      await openPlanCardsDialog();
                     }}
                     className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
                   >
@@ -1136,6 +1152,15 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            {/* PlanCards Dialog */}
+            <PlanDialog
+              open={showPlanCardsDialog}
+              onOpenChange={setShowPlanCardsDialog}
+            >
+              <PlanDialogContent className="max-w-full bg-transparent border-none shadow-none z-[100] flex items-center justify-center min-h-screen h-screen overflow-y-hidden">
+                {planCardsUser && <PlanCards user={planCardsUser} />}
+              </PlanDialogContent>
+            </PlanDialog>
 
             {/* Task Limit Alert Dialog */}
             <AlertDialog
@@ -1151,15 +1176,13 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel
-                    onClick={() => setShowTaskLimitAlert(false)}
-                  >
+                  <AlertDialogCancel onClick={() => setShowPlanAlert(false)}>
                     Cancel
                   </AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => {
-                      setShowTaskLimitAlert(false);
-                      navigate("/profile");
+                    onClick={async () => {
+                      setShowPlanAlert(false);
+                      await openPlanCardsDialog();
                     }}
                     className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
                   >

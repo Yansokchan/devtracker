@@ -190,22 +190,6 @@ const App = () => {
                           Current Plan:{" "}
                           {plan.charAt(0).toUpperCase() + plan.slice(1)}
                         </span>
-                        <Dialog
-                          open={openPlanDialog}
-                          onOpenChange={setOpenPlanDialog}
-                        >
-                          <DialogTrigger asChild>
-                            <button
-                              className="px-4 py-1.5 rounded-lg border-l-2 text-white bg-[#b46309] border-r-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
-                              onClick={() => setOpenPlanDialog(true)}
-                            >
-                              Upgrade
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-full bg-transparent border-none shadow-none z-[100] flex items-center justify-center min-h-screen h-screen overflow-y-hidden">
-                            <PlanCards user={user} />
-                          </DialogContent>
-                        </Dialog>
                       </div>
                     </div>
                   </header>

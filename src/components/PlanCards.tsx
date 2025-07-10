@@ -1,17 +1,16 @@
-import React from "react";
-
 const plans = [
   {
     name: "Free",
     price: "$0.00",
     period: "/ month",
-    label: "Current plan",
+    label: "Free Plan",
     labelColor: "bg-gray-200 text-gray-700",
     features: [
       "Create only one task per day",
       "AI generate Tag and Steps 2 times per day",
+      "Edit tasks unlimited",
     ],
-    button: "Current plan",
+    button: "Free Plan",
     buttonStyle: "bg-gray-200 text-gray-700 cursor-default",
     note: "Free plan limited to only one tasks and 2 times AI generations per day.",
     highlight: "free",
@@ -26,6 +25,7 @@ const plans = [
     features: [
       "Create up to 5 tasks/day",
       "AI generate Tag and Steps 15 times/day",
+      "Edit tasks unlimited",
     ],
     button: "Upgrade to Premium",
     buttonStyle:
@@ -42,9 +42,10 @@ const plans = [
     label: "Unlimited",
     labelColor: "bg-orange-100 text-[#B46309]",
     features: [
-      "Create tasks unlimited",
+      "Create tasks unlimited ",
       "AI generate Tag and Steps unlimited times",
       "Service support 8x5xNBD (Telegram or Email)",
+      "Edit tasks unlimited",
     ],
     button: "Upgrade to Elite",
     buttonStyle:
@@ -58,6 +59,33 @@ const plans = [
 
 // Accept user as a prop for email and userId
 export default function PlanCards({ user }) {
+  // Determine current plan from user.subscription_plan
+  const userPlan = (user?.subscription_plan || "free").toLowerCase().trim();
+  // Debug: log userPlan and plan names
+  console.log(
+    "User subscription_plan:",
+    user?.subscription_plan,
+    "| userPlan:",
+    userPlan
+  );
+  // Map plans to set current and button/label for the user's plan
+  const displayPlans = plans.map((plan) => {
+    const planName = plan.name.toLowerCase().trim();
+    const isCurrent = planName === userPlan;
+    if (isCurrent) {
+      console.log("Current plan matched:", planName);
+    }
+    return {
+      ...plan,
+      current: isCurrent,
+      button: isCurrent ? "Current plan" : plan.button,
+      buttonStyle: isCurrent
+        ? "bg-gray-200 text-gray-700 cursor-default"
+        : plan.buttonStyle,
+      label: isCurrent ? "Current plan" : plan.label,
+      labelColor: isCurrent ? "bg-gray-200 text-gray-700" : plan.labelColor,
+    };
+  });
   // Function to handle upgrade
   const handleUpgrade = async (plan) => {
     if (!user || !plan.priceId) return;
@@ -86,9 +114,9 @@ export default function PlanCards({ user }) {
   };
 
   return (
-    <div className="w-full h-full flex justify-center items-start pt-5 pb-6 px-2 md:py-10 md:pt-20 md:px-2 overflow-y-scroll hide-scrollbar">
+    <div className="w-full h-full flex justify-center items-start mt-10 pt-5 px-2 md:py-10 md:pt-20 md:px-2 overflow-y-scroll hide-scrollbar">
       <div className="grid min-w-0 grid-cols-1 md:grid-cols-3 gap-9 md:gap-8 w-full max-w-screen-xl px-2">
-        {plans.map((plan, idx) => (
+        {displayPlans.map((plan, idx) => (
           <div
             key={plan.name}
             className={`relative flex flex-col items-center min-w-0 rounded-2xl bg-white shadow-lg p-4 sm:p-6 w-full transition-all duration-300
