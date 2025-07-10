@@ -48,6 +48,8 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { Slider } from "@/components/ui/slider";
+import { supabase } from "@/lib/supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 const taskSchema = z.object({
   title: z
@@ -78,6 +80,7 @@ const GEMINI_API_KEY =
 
 export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const { addTask, updateTask } = useTaskContext();
+  const navigate = useNavigate();
   const [newTag, setNewTag] = useState("");
   const [steps, setSteps] = useState<TaskStep[]>([]);
   const [newStepTitle, setNewStepTitle] = useState("");
@@ -97,6 +100,12 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const [aiLoading, setAiLoading] = useState(false);
   const [tagCount, setTagCount] = useState(3); // default 3 tags
   const [stepCount, setStepCount] = useState(5); // default 5 steps
+  const [aiGenerateLimit, setAiGenerateLimit] = useState<number | null>(null);
+  const [aiLimitLoading, setAiLimitLoading] = useState(false);
+  const [showPlanAlert, setShowPlanAlert] = useState(false);
+  const [taskLimit, setTaskLimit] = useState<number | null>(null);
+  const [taskLimitLoading, setTaskLimitLoading] = useState(false);
+  const [showTaskLimitAlert, setShowTaskLimitAlert] = useState(false);
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -136,6 +145,167 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     setShowUpdateConfirm(false);
   }, [isOpen, task, form]);
 
+  // Fetch ai_generate_limit on dialog open
+  useEffect(() => {
+    async function fetchLimits() {
+      setAiLimitLoading(true);
+      setTaskLimitLoading(true);
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+        if (userError || !user) {
+          console.error("Failed to get user:", userError);
+          setAiGenerateLimit(null);
+          setTaskLimit(null);
+          setAiLimitLoading(false);
+          setTaskLimitLoading(false);
+          return;
+        }
+
+        console.log("Fetching limits for user:", user.id);
+
+        const { data, error } = await supabase
+          .from("users")
+          .select("ai_generate_limit, task_limit")
+          .eq("id", user.id)
+          .single();
+
+        if (error) {
+          console.error("Failed to fetch limits:", error);
+          setAiGenerateLimit(null);
+          setTaskLimit(null);
+        } else if (data) {
+          console.log("Current AI generate limit:", data.ai_generate_limit);
+          console.log("Current task limit:", data.task_limit);
+          setAiGenerateLimit(data.ai_generate_limit);
+          setTaskLimit(data.task_limit);
+        } else {
+          console.warn("No limits data found");
+          setAiGenerateLimit(null);
+          setTaskLimit(null);
+        }
+      } catch (err) {
+        console.error("Error in fetchLimits:", err);
+        setAiGenerateLimit(null);
+        setTaskLimit(null);
+      } finally {
+        setAiLimitLoading(false);
+        setTaskLimitLoading(false);
+      }
+    }
+
+    if (isOpen) {
+      fetchLimits();
+    }
+  }, [isOpen]);
+
+  // Function to update AI generate limit
+  const updateAiGenerateLimit = async (newLimit: number) => {
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error("Failed to get user for AI limit update:", userError);
+        return false;
+      }
+
+      console.log(
+        `Attempting to update AI limit to ${newLimit} for user ${user.id}`
+      );
+
+      // Update the ai_generate_limit field
+      const { data, error: updateError } = await supabase
+        .from("users")
+        .update({
+          ai_generate_limit: newLimit,
+        })
+        .eq("id", user.id)
+        .select("ai_generate_limit");
+
+      if (updateError) {
+        console.error("Supabase update error:", updateError);
+        console.error("Error details:", {
+          code: updateError.code,
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+        });
+        return false;
+      }
+
+      if (data && data.length > 0) {
+        console.log(
+          "AI limit updated successfully:",
+          data[0].ai_generate_limit
+        );
+        setAiGenerateLimit(data[0].ai_generate_limit);
+        return true;
+      } else {
+        console.warn("Update succeeded but no data returned");
+        setAiGenerateLimit(newLimit);
+        return true;
+      }
+    } catch (err) {
+      console.error("Exception in updateAiGenerateLimit:", err);
+      return false;
+    }
+  };
+
+  // Function to update task limit
+  const updateTaskLimit = async (newLimit: number) => {
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error("Failed to get user for task limit update:", userError);
+        return false;
+      }
+
+      console.log(
+        `Attempting to update task limit to ${newLimit} for user ${user.id}`
+      );
+
+      // Update the task_limit field
+      const { data, error: updateError } = await supabase
+        .from("users")
+        .update({
+          task_limit: newLimit,
+        })
+        .eq("id", user.id)
+        .select("task_limit");
+
+      if (updateError) {
+        console.error("Supabase update error:", updateError);
+        console.error("Error details:", {
+          code: updateError.code,
+          message: updateError.message,
+          details: updateError.details,
+          hint: updateError.hint,
+        });
+        return false;
+      }
+
+      if (data && data.length > 0) {
+        console.log("Task limit updated successfully:", data[0].task_limit);
+        setTaskLimit(data[0].task_limit);
+        return true;
+      } else {
+        console.warn("Update succeeded but no data returned");
+        setTaskLimit(newLimit);
+        return true;
+      }
+    } catch (err) {
+      console.error("Exception in updateTaskLimit:", err);
+      return false;
+    }
+  };
+
   const onSubmit = async (data: TaskFormData) => {
     setLoading(true);
     // Validation: If task has steps, all must be completed before marking as Completed
@@ -168,6 +338,12 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
           description: `Task '${data.title}' was updated successfully.`,
         });
       } else {
+        // Check task limit before adding a new task (skip if unlimited)
+        if (taskLimit !== null && taskLimit !== -1 && taskLimit <= 0) {
+          setShowTaskLimitAlert(true);
+          setLoading(false);
+          return;
+        }
         await addTask({
           title: data.title,
           description: data.description,
@@ -181,6 +357,23 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
           title: "Task created",
           description: `Task '${data.title}' was created successfully.`,
         });
+
+        // Decrement task limit after successful creation (skip if unlimited)
+        if (taskLimit !== null && taskLimit !== -1) {
+          const newLimit = taskLimit - 1;
+          console.log(`Updating task limit: ${taskLimit} → ${newLimit}`);
+          const updateSuccess = await updateTaskLimit(newLimit);
+          if (!updateSuccess) {
+            toast({
+              title: "Failed to update task limit",
+              description: "Could not update your task limit. Please refresh.",
+              variant: "destructive",
+              className: "bg-[#f8f4ee] shadow-lg",
+            });
+          }
+        } else if (taskLimit === -1) {
+          console.log("Task limit is unlimited (-1), no update needed");
+        }
       }
       onClose();
     } finally {
@@ -337,6 +530,20 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   };
 
   const handleAIGenerate = async () => {
+    console.log("AI Generate clicked. Current limit:", aiGenerateLimit);
+
+    // Check AI limit before proceeding (skip if unlimited)
+    if (
+      !aiLimitLoading &&
+      aiGenerateLimit !== null &&
+      aiGenerateLimit !== -1 &&
+      aiGenerateLimit <= 0
+    ) {
+      console.log("AI limit reached (0), showing upgrade dialog");
+      setShowPlanAlert(true);
+      return;
+    }
+
     const { title, description } = form.getValues();
     if (!title || !description) {
       toast({
@@ -346,8 +553,11 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       });
       return;
     }
+
     setAiLoading(true);
     try {
+      console.log("Starting AI generation with limit:", aiGenerateLimit);
+
       const prompt = `Given the following task title and description, generate:\n1. A list of exactly ${tagCount} relevant tags (as a JSON array of strings).\n2. A list of exactly ${stepCount} step objects (as a JSON array), each with \"title\" and \"description\".\n\nTask Title: ${title}\nTask Description: ${description}\n\nRespond with only valid JSON, no explanation, no markdown, and no code block.\n{\n  \"tags\": [...],\n  \"steps\": [{\"title\": \"...\", \"description\": \"...\"}, ...]\n}`;
 
       const response = await fetch(
@@ -396,12 +606,39 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
           }))
         );
       }
+
+      console.log(
+        "AI generation successful, updating limit from",
+        aiGenerateLimit
+      );
+
+      // Decrement AI limit if not unlimited
+      if (aiGenerateLimit !== null && aiGenerateLimit !== -1) {
+        const newLimit = aiGenerateLimit - 1;
+        console.log(`Updating AI limit: ${aiGenerateLimit} → ${newLimit}`);
+
+        const updateSuccess = await updateAiGenerateLimit(newLimit);
+
+        if (!updateSuccess) {
+          toast({
+            title: "Failed to update AI limit",
+            description:
+              "Could not update your AI generate limit. Please refresh.",
+            variant: "destructive",
+            className: "bg-[#f8f4ee] shadow-lg",
+          });
+        }
+      } else if (aiGenerateLimit === -1) {
+        console.log("AI limit is unlimited (-1), no update needed");
+      }
+
       toast({
         title: "AI Suggestions Applied",
         description: "Tags and steps have been generated.",
         className: "bg-[#f8f4ee] shadow-lg",
       });
     } catch (error) {
+      console.error("AI generation error:", error);
       toast({
         title: "AI Error",
         description: "Failed to generate suggestions. Please try again.",
@@ -825,6 +1062,42 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                     />
                   </div>
                 </div>
+                {/* Show AI limit info */}
+                <div className="mt-2 text-xs text-gray-500">
+                  {aiLimitLoading ? (
+                    <span>Loading AI generate limit...</span>
+                  ) : aiGenerateLimit === -1 ? (
+                    <span>
+                      AI Generate Limit: <b>Unlimited</b>
+                    </span>
+                  ) : aiGenerateLimit !== null ? (
+                    <span>
+                      AI Generate Limit left: <b>{aiGenerateLimit}</b>
+                    </span>
+                  ) : (
+                    <span>
+                      AI Generate Limit: <b>?</b>
+                    </span>
+                  )}
+                </div>
+                {/* Show Task limit info */}
+                <div className="mt-1 text-xs text-gray-500">
+                  {taskLimitLoading ? (
+                    <span>Loading task limit...</span>
+                  ) : taskLimit === -1 ? (
+                    <span>
+                      Task Limit: <b>Unlimited</b>
+                    </span>
+                  ) : taskLimit !== null ? (
+                    <span>
+                      Task Limit left: <b>{taskLimit}</b>
+                    </span>
+                  ) : (
+                    <span>
+                      Task Limit: <b>?</b>
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -836,6 +1109,65 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
             >
               {aiLoading ? "Generating..." : "Generate"}
             </Button>
+
+            {/* Plan Upgrade Alert Dialog */}
+            <AlertDialog open={showPlanAlert} onOpenChange={setShowPlanAlert}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>AI Generate Limit Reached</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You have reached your daily AI generation limit. Upgrade
+                    your plan to get more AI generations.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setShowPlanAlert(false)}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setShowPlanAlert(false);
+                      navigate("/profile");
+                    }}
+                    className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                  >
+                    Upgrade Plan
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Task Limit Alert Dialog */}
+            <AlertDialog
+              open={showTaskLimitAlert}
+              onOpenChange={setShowTaskLimitAlert}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Task Limit Reached</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You have reached your daily task limit. Upgrade your plan to
+                    create more tasks.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    onClick={() => setShowTaskLimitAlert(false)}
+                  >
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      setShowTaskLimitAlert(false);
+                      navigate("/profile");
+                    }}
+                    className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                  >
+                    Upgrade Plan
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
             <DialogFooter className="flex gap-2 sm:gap-0">
               <Button

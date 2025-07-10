@@ -13,7 +13,6 @@ import NotFound from "./pages/NotFound";
 import { useEffect, useState } from "react";
 import { supabase } from "./lib/supabaseClient";
 import Login from "./components/Login";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from "./pages/Profile";
 import ActivityHistory from "./pages/ActivityHistory";
@@ -40,13 +39,57 @@ async function syncUser(user) {
         email: user.email,
         subscription_plan: "free",
         subscription_status: "active",
-        task_limit: 10, // Example default
-        ai_generate_limit: 3, // Example default
+        task_limit: 1, // Example default
+        ai_generate_limit: 2, // Example default
+        last_reset_date: new Date().toISOString().split("T")[0],
       },
     ]);
     if (insertError) {
       console.error("Error inserting user:", insertError);
     }
+  }
+}
+
+// Frontend daily reset logic
+async function frontendDailyReset(userId) {
+  if (!userId) return;
+  try {
+    // Get user's current limits and last reset date
+    const { data: user, error } = await supabase
+      .from("users")
+      .select(
+        "task_limit, ai_generate_limit, subscription_plan, last_reset_date"
+      )
+      .eq("id", userId)
+      .single();
+    if (error || !user) return;
+    const today = new Date().toISOString().split("T")[0];
+    if (user.last_reset_date !== today) {
+      let newTaskLimit = 1;
+      let newAiLimit = 2;
+      if (user.subscription_plan === "premium") {
+        newTaskLimit = 5;
+        newAiLimit = 15;
+      } else if (user.subscription_plan === "elite") {
+        newTaskLimit = -1;
+        newAiLimit = -1;
+      }
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          task_limit: newTaskLimit,
+          ai_generate_limit: newAiLimit,
+          last_reset_date: today,
+        })
+        .eq("id", userId);
+      if (!updateError) {
+        console.log("Frontend: Daily limits reset for user", userId);
+      } else {
+        console.error("Frontend: Failed to reset daily limits:", updateError);
+      }
+    }
+  } catch (err) {
+    console.error("Frontend: Error checking daily limits:", err);
   }
 }
 
@@ -83,6 +126,7 @@ const App = () => {
         if (session?.user) {
           syncUser(session.user); // Don't await!
           fetchUserPlan(session.user.id); // Fetch plan
+          frontendDailyReset(session.user.id); // Call frontend daily reset
         } else {
           setPlan("free");
         }
@@ -96,6 +140,7 @@ const App = () => {
       if (session?.user) {
         syncUser(session.user); // Don't await!
         fetchUserPlan(session.user.id); // Fetch plan
+        frontendDailyReset(session.user.id); // Call frontend daily reset
       } else {
         setPlan("free");
       }

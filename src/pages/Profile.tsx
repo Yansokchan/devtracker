@@ -5,26 +5,6 @@ import { Mail, Loader2, Crown, ListChecks, Bot } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { Card } from "@/components/ui/card";
 
-function useCountUp(target: number, duration = 800) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    let start = 0;
-    const step = Math.ceil(target / (duration / 16));
-    if (target === 0) return setCount(0);
-    const interval = setInterval(() => {
-      start += step;
-      if (start >= target) {
-        setCount(target);
-        clearInterval(interval);
-      } else {
-        setCount(start);
-      }
-    }, 16);
-    return () => clearInterval(interval);
-  }, [target, duration]);
-  return count;
-}
-
 export default function Profile({ user }: { user: any }) {
   const [fullName, setFullName] = useState(user.user_metadata?.full_name || "");
   const [avatarUrl, setAvatarUrl] = useState(
@@ -35,12 +15,6 @@ export default function Profile({ user }: { user: any }) {
   const [plan, setPlan] = useState("free");
   const [taskLimit, setTaskLimit] = useState(0);
   const [aiGenerateLimit, setAiGenerateLimit] = useState(0);
-
-  // Animated numbers
-  const animatedTaskLimit = useCountUp(taskLimit === -1 ? 0 : taskLimit);
-  const animatedAiLimit = useCountUp(
-    aiGenerateLimit === -1 ? 0 : aiGenerateLimit
-  );
 
   useEffect(() => {
     async function fetchUserDetails() {
