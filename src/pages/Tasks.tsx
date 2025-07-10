@@ -134,7 +134,14 @@ export default function Tasks() {
             Manage and track all your tasks in one place.
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex sm:items-center items-end flex-col sm:flex-row sm:gap-4 gap-2">
+          <Button
+            onClick={handleNewTask}
+            className="gradient-primary px-6 text-white hover:opacity-90 border-l-2 border-r-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Task
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -142,7 +149,7 @@ export default function Tasks() {
                 className="flex text-[#B45309] border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba] items-center gap-2 hover:bg-[#ffffff]"
               >
                 <Sparkles className="w-4 h-4 -mt-[2px] text-[#b46309]" />
-                AI Assistance
+                Attention
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -163,13 +170,6 @@ export default function Tasks() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            onClick={handleNewTask}
-            className="gradient-primary text-white hover:opacity-90 border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Task
-          </Button>
         </div>
       </div>
 

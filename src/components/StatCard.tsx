@@ -51,13 +51,17 @@ export function StatCard({
           className={`text-2xl font-bold ${textColor} transition-transform duration-700 ease-out will-change-transform animate-slide-top`}
           style={{ display: "inline-block" }}
         >
-          <CountUp
-            to={typeof value === "number" ? value : parseFloat(value)}
-            duration={1.2}
-            separator=","
-            onStart={() => {}}
-            onEnd={() => {}}
-          />
+          {typeof value === "number" ? (
+            <CountUp
+              to={value}
+              duration={1.2}
+              separator=","
+              onStart={() => {}}
+              onEnd={() => {}}
+            />
+          ) : (
+            <span>{value}</span>
+          )}
         </div>
         {change && (
           <p
