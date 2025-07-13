@@ -9,6 +9,7 @@ import {
   Target,
   Clock,
   AlertTriangle,
+  X as XIcon,
 } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -29,6 +30,29 @@ import { TaskDialog } from "@/components/TaskDialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "../lib/supabaseClient";
 
+// Custom Animated Hamburger Icon Component
+const AnimatedHamburgerIcon = ({ isOpen }: { isOpen: boolean }) => {
+  return (
+    <div className="relative w-6 h-6 flex flex-col justify-center items-center">
+      <span
+        className={`absolute w-6 h-0.5 bg-[#B45309] rounded-full transition-all duration-300 ease-in-out ${
+          isOpen ? "rotate-45 translate-y-0" : "-translate-y-2"
+        }`}
+      />
+      <span
+        className={`absolute w-6 h-0.5 bg-[#B45309] rounded-full transition-all duration-300 ease-in-out ${
+          isOpen ? "opacity-0" : "opacity-100"
+        }`}
+      />
+      <span
+        className={`absolute w-6 h-0.5 bg-[#B45309] rounded-full transition-all duration-300 ease-in-out ${
+          isOpen ? "-rotate-45 translate-y-0" : "translate-y-2"
+        }`}
+      />
+    </div>
+  );
+};
+
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Manage Tasks", url: "/tasks", icon: ListTodo },
@@ -38,7 +62,7 @@ const navigationItems = [
 ];
 
 export function AppSidebar({ user }: { user: any }) {
-  const { open, isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const { getOverallStats } = useTaskContext();
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
@@ -62,12 +86,22 @@ export function AppSidebar({ user }: { user: any }) {
     <>
       <Sidebar className={open ? "w-64" : "w-20"} collapsible="icon">
         <SidebarContent className="bg-[#FFFFFF] border-r border-[#dcd5c4] flex flex-col h-full">
+          {/* Mobile Close Button */}
+          {isMobile && (
+            <button
+              className="absolute top-3 right-3 z-50 p-2 rounded-full hover:bg-[#f6f4f0] transition-colors"
+              onClick={() => setOpenMobile(false)}
+              aria-label="Close sidebar"
+            >
+              <XIcon className="w-6 h-6 text-[#B45309]" />
+            </button>
+          )}
           {/* Header */}
           <div className="p-2">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
+              {/* <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
                 <Target className="w-5 h-5 text-[#92582b]" />
-              </div>
+              </div> */}
               {open && (
                 <div>
                   <h1 className="font-semibold text-2xl text-gray-900">
@@ -131,7 +165,7 @@ export function AppSidebar({ user }: { user: any }) {
                 <div className="space-y-3 px-2">
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-2">
-                      <ListTodo className="w-4 h-4 text-blue-500" />
+                      <ListTodo className="w-4 h-4 text-[#B46309]" />
                       <span className="text-gray-600">Total Tasks</span>
                     </div>
                     <span className="font-semibold text-[#453c38]">
@@ -151,7 +185,7 @@ export function AppSidebar({ user }: { user: any }) {
 
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4 text-yellow-500" />
+                      <Clock className="w-4 h-4 text-blue-500" />
                       <span className="text-gray-600">In Progress</span>
                     </div>
                     <span className="font-semibold text-[#453c38]">

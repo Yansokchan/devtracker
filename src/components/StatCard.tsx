@@ -63,13 +63,7 @@ export function StatCard({
             <span>{value}</span>
           )}
         </div>
-        {change && (
-          <p
-            className={`text-xs ${textColor} ${changeColors[changeType]} mt-1`}
-          >
-            {change}
-          </p>
-        )}
+        {change && <p className={`text-xs ${textColor} mt-1`}>{change}</p>}
       </CardContent>
     </Card>
   );

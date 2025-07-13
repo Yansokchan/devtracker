@@ -276,7 +276,7 @@ const SidebarTrigger = React.forwardRef<
       }}
       {...props}
     >
-      <PanelsLeftBottom className="mb-[2px]" />
+      <PanelsLeftBottom className="mb-[2px] w-6 h-6" />
     </Button>
   );
 });

@@ -66,9 +66,7 @@ export default function Tasks() {
         function isDueThisWeek(task: Task, today: Date, endOfWeek: Date) {
           if (!task.due_date) return false;
           const due = new Date(task.due_date);
-          return (
-            due >= today && due <= endOfWeek && task.status !== "Completed"
-          );
+          return due <= endOfWeek && task.status !== "Completed";
         }
         const today = getToday();
         const endOfWeek = getEndOfWeek(today);
@@ -99,9 +97,7 @@ export default function Tasks() {
         function isDueThisMonth(task: Task, today: Date, endOfMonth: Date) {
           if (!task.due_date) return false;
           const due = new Date(task.due_date);
-          return (
-            due >= today && due <= endOfMonth && task.status !== "Completed"
-          );
+          return due <= endOfMonth && task.status !== "Completed";
         }
         const today = getToday();
         const endOfMonth = getEndOfMonth(today);
@@ -129,7 +125,7 @@ export default function Tasks() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">All Tasks</h1>
+          <h1 className="text-3xl font-medium text-gray-900 mb-2">All Tasks</h1>
           <p className="text-gray-600">
             Manage and track all your tasks in one place.
           </p>

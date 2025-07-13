@@ -54,3 +54,20 @@
 .animate-slide-top {
   animation: slide-top 0.7s cubic-bezier(0.23, 1, 0.32, 1);
 }
+
+/* Custom Scrollbar for TaskDialog Steps */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #b46309 #f6f4f0;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background: #f6f4f0;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #b46309;
+  border-radius: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #92582b;
+}

@@ -33,7 +33,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Plus, Edit, Trash2 } from "lucide-react";
+import { X, Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -668,7 +668,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-3 sm:p-6">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Task" : "Create New Task"}</DialogTitle>
           <DialogDescription>
@@ -851,7 +851,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
                   <div className="grid grid-cols-12 gap-2">
                     <Input
                       placeholder="Step title"
@@ -894,7 +894,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   </div>
                 </div>
 
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2">
                   {steps.map((step) => (
                     <div
                       key={step.id}
@@ -1121,14 +1121,21 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
               type="button"
               onClick={handleAIGenerate}
               disabled={aiLoading}
-              className="mb-4 border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+              className="mb-4 border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba] flex items-center justify-center gap-2"
             >
-              {aiLoading ? "Generating..." : "Generate"}
+              {aiLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                "Generate"
+              )}
             </Button>
 
             {/* Plan Upgrade Alert Dialog */}
             <AlertDialog open={showPlanAlert} onOpenChange={setShowPlanAlert}>
-              <AlertDialogContent>
+              <AlertDialogContent className="p-6">
                 <AlertDialogHeader>
                   <AlertDialogTitle>AI Generate Limit Reached</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -1167,7 +1174,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
               open={showTaskLimitAlert}
               onOpenChange={setShowTaskLimitAlert}
             >
-              <AlertDialogContent>
+              <AlertDialogContent className="p-6">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Task Limit Reached</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -1210,20 +1217,20 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                   <AlertDialogTrigger asChild>
                     <Button
                       type="submit"
-                      className="gradient-primary border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba] text-white"
+                      className="gradient-primary border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba] text-white flex items-center justify-center gap-2"
                       disabled={loading}
                     >
                       {loading ? (
-                        <span className="flex items-center gap-2">
-                          <Skeleton className="w-4 h-4 bg-white/60" />
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
                           Updating...
-                        </span>
+                        </>
                       ) : (
                         "Update Task"
                       )}
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="p-6">
                     <AlertDialogHeader>
                       <AlertDialogTitle>Confirm Update</AlertDialogTitle>
                       <AlertDialogDescription>
@@ -1238,10 +1245,10 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                         className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
                       >
                         {loading ? (
-                          <span className="flex items-center gap-2">
-                            <Skeleton className="w-4 h-4 bg-white/60" />
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
                             Updating...
-                          </span>
+                          </>
                         ) : (
                           "Yes, update"
                         )}
@@ -1252,14 +1259,14 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
               ) : (
                 <Button
                   type="submit"
-                  className="gradient-primary text-white border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                  className="gradient-primary text-white border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba] flex items-center justify-center gap-2"
                   disabled={loading}
                 >
                   {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Skeleton className="w-4 h-4 bg-white/60" />
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       Creating...
-                    </span>
+                    </>
                   ) : (
                     "Create Task"
                   )}

@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TaskProvider } from "@/context/TaskContext";
 import Dashboard from "./pages/Dashboard";
@@ -18,8 +18,49 @@ import Profile from "./pages/Profile";
 import ActivityHistory from "./pages/ActivityHistory";
 import PlanCards from "./components/PlanCards";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const queryClient = new QueryClient();
+
+// Custom Animated Hamburger Icon Component
+const AnimatedHamburgerIcon = ({ isOpen }: { isOpen: boolean }) => {
+  return (
+    <div className="relative w-6 h-6 flex flex-col justify-center items-center">
+      <span
+        className={`absolute w-6 h-0.5 bg-[#B45309] rounded-full transition-all duration-300 ease-in-out ${
+          isOpen ? "rotate-45 translate-y-0" : "-translate-y-2"
+        }`}
+      />
+      <span
+        className={`absolute w-6 h-0.5 bg-[#B45309] rounded-full transition-all duration-300 ease-in-out ${
+          isOpen ? "opacity-0" : "opacity-100"
+        }`}
+      />
+      <span
+        className={`absolute w-6 h-0.5 bg-[#B45309] rounded-full transition-all duration-300 ease-in-out ${
+          isOpen ? "-rotate-45 translate-y-0" : "translate-y-2"
+        }`}
+      />
+    </div>
+  );
+};
+
+// Custom Sidebar Trigger Component
+const CustomSidebarTrigger = () => {
+  const { openMobile, setOpenMobile, isMobile } = useSidebar();
+  if (!isMobile) return null;
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => setOpenMobile(!openMobile)}
+      className="h-10 w-10 p-0 hover:bg-[#fdf7f7] transition-colors duration-200 md:hidden"
+      aria-label={openMobile ? "Close sidebar" : "Open sidebar"}
+    >
+      <AnimatedHamburgerIcon isOpen={openMobile} />
+    </Button>
+  );
+};
 
 // Add syncUser function
 async function syncUser(user) {
@@ -176,11 +217,11 @@ const App = () => {
 
                 <div className="flex-1 flex flex-col min-h-0">
                   {/* Header */}
-                  <header className="h-16 w-full bg-[#FFFFFF] border-b-2 border-[#dcd5c4] flex items-center px-4 md:px-6 z-30">
-                    <SidebarTrigger className="h-6 text-[#B45309] md:hidden inline-block" />
+                  <header className="fixed top-0 left-0 right-0 h-16 w-full bg-[#FFFFFF] border-b-2 border-[#dcd5c4] flex items-center px-4 md:px-6 z-40 md:ml-64">
+                    <CustomSidebarTrigger />
                     <div className="flex flex-1 flex-row items-center justify-between w-full">
                       <div className="flex items-center space-x-4">
-                        <h2 className="text-lg font-semibold text-gray-900">
+                        <h2 className="text-lg font-semibold text-gray-900 ml-1">
                           DevTracker <span className="text-[#B45309]">PRO</span>
                         </h2>
                       </div>
@@ -195,7 +236,7 @@ const App = () => {
                   </header>
 
                   {/* Main Content */}
-                  <main className="flex-1 min-h-0 p-2 sm:p-6 overflow-auto">
+                  <main className="flex-1 min-h-0 p-2 sm:p-6 overflow-auto mt-16">
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route

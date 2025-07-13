@@ -27,7 +27,7 @@ export default function Analytics() {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Analytics</h1>
+        <h1 className="text-3xl font-medium text-gray-900 mb-2">Analytics</h1>
         <p className="text-gray-600">
           Track your productivity and task completion patterns.
         </p>
@@ -43,13 +43,13 @@ export default function Analytics() {
           <>
             <Card className="bg-[#f6f4f0]">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-green-600">
                   Completion Rate
                 </CardTitle>
                 <Target className="w-4 h-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-green-800">
                   <CountUp
                     to={
                       typeof completionVelocity === "string"
@@ -63,7 +63,7 @@ export default function Analytics() {
                   />
                   %
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-green-600 mt-1">
                   {stats.completed} of {stats.total} tasks completed
                 </p>
               </CardContent>
@@ -71,13 +71,13 @@ export default function Analytics() {
 
             <Card className="bg-[#f6f4f0]">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-blue-600">
                   Avg Tasks/Day
                 </CardTitle>
                 <TrendingUp className="w-4 h-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-blue-800">
                   <CountUp
                     to={
                       typeof avgTasksPerDay === "string"
@@ -90,7 +90,7 @@ export default function Analytics() {
                     onEnd={() => {}}
                   />
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-blue-600 mt-1">
                   Based on last 30 days
                 </p>
               </CardContent>
@@ -98,13 +98,13 @@ export default function Analytics() {
 
             <Card className="bg-[#f6f4f0]">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-purple-600">
                   Avg Steps/Task
                 </CardTitle>
                 <BarChart3 className="w-4 h-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-purple-800">
                   <CountUp
                     to={
                       typeof avgStepsPerTask === "string"
@@ -117,7 +117,7 @@ export default function Analytics() {
                     onEnd={() => {}}
                   />
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-purple-600 mt-1">
                   {tasksWithSteps.length} tasks with steps
                 </p>
               </CardContent>
@@ -125,13 +125,13 @@ export default function Analytics() {
 
             <Card className="bg-[#f6f4f0]">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-orange-600">
                   Active Tasks
                 </CardTitle>
                 <Clock className="w-4 h-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-orange-800">
                   <CountUp
                     to={stats.inProgress}
                     duration={1.2}
@@ -140,7 +140,7 @@ export default function Analytics() {
                     onEnd={() => {}}
                   />
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-orange-600 mt-1">
                   Currently in progress
                 </p>
               </CardContent>

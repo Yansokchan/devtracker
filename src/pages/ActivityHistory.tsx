@@ -17,6 +17,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import { format } from "date-fns";
 import { Skeleton } from "../components/ui/skeleton";
 
@@ -38,6 +45,7 @@ export default function ActivityHistory() {
   const [taskTitles, setTaskTitles] = useState<TaskTitleMap>({});
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedAction, setSelectedAction] = useState<string>("all");
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const { activityLogs, loadingActivityLogs, tasks, fetchActivityLogs } =
     useTaskContext();
@@ -134,34 +142,53 @@ export default function ActivityHistory() {
     }
   };
 
-  // Filter activity logs by selected date
-  const filteredLogs = selectedDate
-    ? activityLogs.filter((log) => {
-        const logDate = new Date(log.created_at);
-        return (
-          logDate.getFullYear() === selectedDate.getFullYear() &&
-          logDate.getMonth() === selectedDate.getMonth() &&
-          logDate.getDate() === selectedDate.getDate()
-        );
-      })
-    : activityLogs;
+  // Filter activity logs by selected date and action
+  const filteredLogs = activityLogs.filter((log) => {
+    // Date filter
+    if (selectedDate) {
+      const logDate = new Date(log.created_at);
+      const dateMatch =
+        logDate.getFullYear() === selectedDate.getFullYear() &&
+        logDate.getMonth() === selectedDate.getMonth() &&
+        logDate.getDate() === selectedDate.getDate();
+      if (!dateMatch) return false;
+    }
+
+    // Action filter
+    if (selectedAction !== "all") {
+      if (selectedAction === "create" && log.action !== "create") return false;
+      if (selectedAction === "update" && log.action !== "edit") return false;
+      if (selectedAction === "delete" && log.action !== "delete") return false;
+    }
+
+    return true;
+  });
+
+  const clearFilters = () => {
+    setSelectedDate(null);
+    setSelectedAction("all");
+  };
+
+  const hasActiveFilters = selectedDate !== null || selectedAction !== "all";
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold mb-6">Activity History</h1>
-        {/* Date Filter Button and Popover */}
-
-        <div className="flex items-center gap-4 mb-4">
+        <h1 className="text-3xl font-medium mb-6">Activity History</h1>
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row items-end justify-end gap-4 mb-4">
+          {/* Date Filter */}
           <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 onClick={() => setDatePopoverOpen(true)}
+                className="text-[#B45309] border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
               >
-                <Filter className="w-4 h-4" />
+                <Filter className="w-4 h-4 mr-2" />
                 {selectedDate
                   ? `Date: ${format(selectedDate, "PPP")}`
-                  : "Filter"}
+                  : "Filter by Date"}
               </Button>
             </PopoverTrigger>
             <PopoverContent align="start" className="p-0 w-auto">
@@ -176,9 +203,28 @@ export default function ActivityHistory() {
               />
             </PopoverContent>
           </Popover>
-          {selectedDate && (
-            <Button variant="ghost" onClick={() => setSelectedDate(null)}>
-              <X className="w-4 h-4 mr-1" /> Clear
+
+          {/* Action Filter */}
+          <Select value={selectedAction} onValueChange={setSelectedAction}>
+            <SelectTrigger className="w-[155px] text-[#B45309] border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]">
+              <SelectValue placeholder="Filter by Action" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#fdf7f7] border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]">
+              <SelectItem value="all">All Actions</SelectItem>
+              <SelectItem value="create">Create</SelectItem>
+              <SelectItem value="update">Update</SelectItem>
+              <SelectItem value="delete">Delete</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              onClick={clearFilters}
+              className="text-[#B45309] hover:text-[#B45309] hover:bg-[#fdf7f7]"
+            >
+              <X className="w-4 h-4 mr-1" /> Clear All
             </Button>
           )}
         </div>
@@ -218,7 +264,11 @@ export default function ActivityHistory() {
         </TableBody>
       </Table>
       {!loadingActivityLogs && filteredLogs.length === 0 && (
-        <div className="mt-4 text-gray-500 text-center">No activity found.</div>
+        <div className="mt-4 text-gray-500 text-center">
+          {hasActiveFilters
+            ? "No activity found for the selected filters."
+            : "No activity found."}
+        </div>
       )}
     </div>
   );

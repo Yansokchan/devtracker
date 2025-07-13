@@ -146,9 +146,11 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
                     </svg>
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-3xl p-6">
                   <DialogHeader>
-                    <DialogTitle>{task.title}</DialogTitle>
+                    <DialogTitle className="font-medium">
+                      {task.title}
+                    </DialogTitle>
                     <DialogDescription>{task.description}</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-2 mt-2">
@@ -224,28 +226,39 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
                         {task.steps.map((step) => (
                           <div
                             key={step.id}
-                            className="flex items-center justify-between text-xs"
+                            className="flex items-start justify-between text-xs"
                           >
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-start space-x-2 flex-1">
                               <CheckCircle
-                                className={`w-3 h-3 ${
+                                className={`w-3 h-3 mt-0.5 ${
                                   step.completed
                                     ? "text-green-500"
                                     : "text-gray-300"
                                 }`}
                               />
-                              <span
-                                className={`truncate max-w-48 ${
-                                  step.completed
-                                    ? "line-through text-gray-500"
-                                    : ""
-                                }`}
-                              >
-                                {step.title}
-                              </span>
+                              <div className="flex-1 min-w-0">
+                                <span
+                                  className={`block ${
+                                    step.completed
+                                      ? "line-through text-gray-500"
+                                      : "text-gray-950"
+                                  }`}
+                                >
+                                  {step.title}
+                                </span>
+                                {step.description && (
+                                  <p
+                                    className={`text-xs mt-1 text-gray-600 ${
+                                      step.completed ? "line-through" : ""
+                                    }`}
+                                  >
+                                    {step.description}
+                                  </p>
+                                )}
+                              </div>
                             </div>
                             <Badge
-                              className={`text-xs font-light ${getStepStatusColor(
+                              className={`text-xs font-light ml-2 flex-shrink-0 ${getStepStatusColor(
                                 step.status
                               )}`}
                             >
@@ -258,7 +271,12 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
-                      <Button variant="outline">Close</Button>
+                      <Button
+                        variant="outline"
+                        className="text-[#B45309] border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                      >
+                        Close
+                      </Button>
                     </DialogClose>
                   </DialogFooter>
                 </DialogContent>
