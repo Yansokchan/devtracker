@@ -4,8 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, TrendingUp, Target, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import CountUp from "@/components/ui/CountUp";
+import { useEffect } from "react";
 
 export default function Analytics() {
+  useEffect(() => {
+    document.title = "DevTracker Pro | Analytics";
+  }, []);
+
   const { tasks, getOverallStats, loading } = useTaskContext();
   const stats = getOverallStats();
 

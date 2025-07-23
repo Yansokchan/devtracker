@@ -12,10 +12,19 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { TaskDialog } from "@/components/TaskDialog";
 
 export default function Dashboard() {
+  useEffect(() => {
+    document.title = "DevTracker Pro | Dashboard";
+  }, []);
+
   const { tasks, getOverallStats, loading } = useTaskContext();
   const stats = getOverallStats();
+  const navigate = useNavigate();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Get recent tasks (last 5)
   const recentTasks = tasks
@@ -33,6 +42,11 @@ export default function Dashboard() {
       (task.status === "Completed" && task.updated_at.split("T")[0] === today)
   );
 
+  // Handlers for Quick Actions
+  const handleCreateTask = () => setIsDialogOpen(true);
+  const handleViewAnalytics = () => navigate("/analytics");
+  const handleCheckDueDates = () => navigate("/tasks");
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -44,7 +58,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-28 w-full" />
@@ -150,13 +164,22 @@ export default function Dashboard() {
                 <Skeleton className="h-24 w-full" />
               ) : (
                 <div className="space-y-2">
-                  <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
+                  <button
+                    className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm"
+                    onClick={handleCreateTask}
+                  >
                     + Create new task
                   </button>
-                  <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
+                  <button
+                    className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm"
+                    onClick={handleViewAnalytics}
+                  >
                     📊 View all analytics
                   </button>
-                  <button className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm">
+                  <button
+                    className="w-full text-left p-2 hover:bg-[#f6f4f0] rounded text-sm"
+                    onClick={handleCheckDueDates}
+                  >
                     📅 Check due dates
                   </button>
                 </div>
@@ -172,7 +195,7 @@ export default function Dashboard() {
           <CardTitle className="font-medium">Recent Activity</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {loading
               ? Array.from({ length: 3 }).map((_, i) => (
                   <Skeleton key={i} className="h-24 w-full" />
@@ -183,6 +206,12 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      {/* Task Dialog for Quick Action */}
+      <TaskDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        task={null}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableHeader,
@@ -42,6 +42,10 @@ interface TaskTitleMap {
 }
 
 export default function ActivityHistory() {
+  useEffect(() => {
+    document.title = "DevTracker Pro | Activity History";
+  }, []);
+
   const [taskTitles, setTaskTitles] = useState<TaskTitleMap>({});
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);

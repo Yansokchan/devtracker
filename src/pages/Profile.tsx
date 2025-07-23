@@ -20,12 +20,12 @@ export default function Profile({ user }: { user: any }) {
   const [aiGenerateLimit, setAiGenerateLimit] = useState(0);
   const [openPlanDialog, setOpenPlanDialog] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [subscriptionStart, setSubscriptionStart] = useState<string | null>(
-    null
-  );
-  const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
+  const [subscriptionStart, setSubscriptionStart] = useState<Date | null>(null);
+  const [subscriptionEnd, setSubscriptionEnd] = useState<Date | null>(null);
 
   useEffect(() => {
+    document.title = "DevTracker Pro | Profile";
+
     async function fetchUserDetails() {
       if (!user?.id) return;
       const { data, error } = await supabase
@@ -90,7 +90,7 @@ export default function Profile({ user }: { user: any }) {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center mt-5 mb-20">
       {/* Subscription Info Card */}
       {!loading && taskLimit !== -1 && (
         <div className="w-full mx-auto mb-6">
@@ -169,20 +169,30 @@ export default function Profile({ user }: { user: any }) {
                 />
               </div>
               {/* Avatar URL input removed as per user change */}
-              <button
-                type="submit"
-                className="w-full bg-[#b46309] text-white py-3 rounded-xl font-medium text-lg transition-all duration-150 disabled:opacity-70 flex items-center justify-center gap-2 border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
-                disabled={saving}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save Changes"
-                )}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="w-full bg-[#b46309] text-white py-2 rounded-xl font-medium text-md transition-all duration-150 disabled:opacity-70 flex items-center justify-center gap-2 border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="px-3 py-2 rounded bg-[#E4D9BC] text-gray-800 hover:bg-amber-700/50 transition text-md font-medium border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
+                  onClick={() => supabase.auth.signOut()}
+                >
+                  Logout
+                </button>
+              </div>
+
               {message && (
                 <div
                   className={`text-center text-sm p-2 rounded-xl mt-2 transition-all duration-200 ${
@@ -211,11 +221,15 @@ export default function Profile({ user }: { user: any }) {
               <StatCard
                 title="Current Plan"
                 value={plan.charAt(0).toUpperCase() + plan.slice(1)}
-                change={`Period: ${new Date(
-                  subscriptionStart
-                ).toLocaleDateString()} - ${new Date(
-                  subscriptionEnd
-                ).toLocaleDateString()}`}
+                change={
+                  !subscriptionStart && !subscriptionEnd
+                    ? "No subscription"
+                    : `Coverage period: ${new Date(
+                        subscriptionStart
+                      ).toLocaleDateString()} - ${new Date(
+                        subscriptionEnd
+                      ).toLocaleDateString()}`
+                }
                 changeType="neutral"
                 icon={Crown}
                 gradient="red"

@@ -147,7 +147,7 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl p-6">
-                  <DialogHeader>
+                  <DialogHeader className="gap-4">
                     <DialogTitle className="font-medium">
                       {task.title}
                     </DialogTitle>
@@ -302,7 +302,7 @@ export function TaskCard({ task, onEdit, hideActions = false }: TaskCardProps) {
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="p-6">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
                     <AlertDialogDescription>

@@ -49,7 +49,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/lib/supabaseClient";
-import { useNavigate } from "react-router-dom";
 import PlanCards from "./PlanCards";
 import {
   Dialog as PlanDialog,
@@ -85,7 +84,6 @@ const GEMINI_API_KEY =
 
 export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const { addTask, updateTask } = useTaskContext();
-  const navigate = useNavigate();
   const [newTag, setNewTag] = useState("");
   const [steps, setSteps] = useState<TaskStep[]>([]);
   const [newStepTitle, setNewStepTitle] = useState("");
@@ -858,14 +856,14 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                       value={newStepTitle}
                       onChange={(e) => setNewStepTitle(e.target.value)}
                       onKeyPress={handleStepKeyPress}
-                      className="col-span-4"
+                      className="col-span-4 outline-none"
                     />
                     <Input
                       placeholder="Description (optional)"
                       value={newStepDescription}
                       onChange={(e) => setNewStepDescription(e.target.value)}
                       onKeyPress={handleStepKeyPress}
-                      className="col-span-4"
+                      className="col-span-4 outline-none"
                     />
                     <Select
                       value={newStepStatus}

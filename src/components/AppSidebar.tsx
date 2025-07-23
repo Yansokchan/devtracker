@@ -56,9 +56,9 @@ const AnimatedHamburgerIcon = ({ isOpen }: { isOpen: boolean }) => {
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Manage Tasks", url: "/tasks", icon: ListTodo },
-  // { title: "My Tasks", url: "/my-tasks", icon: User },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Activity Logs", url: "/activity-history", icon: Settings },
+  { title: "Activity History", url: "/activity-history", icon: Settings },
+  { title: "Profile", url: "/profile", icon: User },
 ];
 
 export function AppSidebar({ user }: { user: any }) {
@@ -136,7 +136,7 @@ export function AppSidebar({ user }: { user: any }) {
           )} */}
 
           {/* Navigation */}
-          <SidebarGroup className=" border-t-2 border-[#dcd5c4]">
+          <SidebarGroup className="border-t-2 border-[#dcd5c4]">
             <SidebarGroupLabel>Navigation</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -147,7 +147,7 @@ export function AppSidebar({ user }: { user: any }) {
                         className={getNavCls({ isActive: isActive(item.url) })}
                         onClick={() => handleNavClick(item.url)}
                       >
-                        <item.icon className="w-4 h-4" />
+                        <item.icon className="w-4 h-4 -mt-1" />
                         {open && <span>{item.title}</span>}
                       </button>
                     </SidebarMenuButton>
@@ -211,7 +211,7 @@ export function AppSidebar({ user }: { user: any }) {
           {/* User Info at the bottom */}
           {open && (
             <div className="p-2 border-t-2 border-[#dcd5c4] flex items-center justify-center space-x-3">
-              <Avatar className="w-12 h-12">
+              <Avatar className="w-10 h-10">
                 <AvatarImage
                   src={user?.user_metadata?.avatar_url}
                   alt={user?.user_metadata?.full_name || user?.email}
@@ -233,27 +233,6 @@ export function AppSidebar({ user }: { user: any }) {
                 <span className="text-xs text-gray-500 truncate">
                   {user?.email}
                 </span>
-                <div className="flex mt-2 gap-2">
-                  <button
-                    className="px-3 py-1 rounded bg-[#B45309] text-white hover:bg-[#a05a13] transition text-xs font-medium border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
-                    onClick={() => {
-                      if (isMobile) {
-                        setOpenMobile(false);
-                        setTimeout(() => navigate("/profile"), 300);
-                      } else {
-                        navigate("/profile");
-                      }
-                    }}
-                  >
-                    Profile
-                  </button>
-                  <button
-                    className="px-3 py-1 rounded bg-[#E4D9BC] text-gray-800 hover:bg-gray-300 transition text-xs font-medium border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
-                    onClick={() => supabase.auth.signOut()}
-                  >
-                    Logout
-                  </button>
-                </div>
               </div>
             </div>
           )}

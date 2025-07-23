@@ -506,7 +506,7 @@ async function logActivity(
   action: string,
   taskId: string,
   details?: string,
-  taskTitle?: string
+  taskTitle?: string 
 ) {
   const {
     data: { user },

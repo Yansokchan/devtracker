@@ -15,10 +15,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sparkles } from "lucide-react";
 
-const GEMINI_API_KEY =
-  import.meta.env.VITE_GEMINI_API_KEY || "YOUR_GEMINI_API_KEY";
-
 export default function Tasks() {
+  useEffect(() => {
+    document.title = "DevTracker Pro | Manage Tasks";
+  }, []);
+
   const { tasks, filteredTasks, loading, setFilters } = useTaskContext();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -119,6 +120,13 @@ export default function Tasks() {
   const tasksToShow = aiFilteredIds
     ? tasks.filter((t) => aiFilteredIds.includes(t.id))
     : filteredTasks;
+
+  // Sort so incomplete tasks come first
+  const sortedTasksToShow = [...tasksToShow].sort((a, b) => {
+    if (a.status === "Completed" && b.status !== "Completed") return 1;
+    if (a.status !== "Completed" && b.status === "Completed") return -1;
+    return 0;
+  });
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -232,17 +240,17 @@ export default function Tasks() {
       )}
 
       {/* Tasks Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {aiLoading
-          ? Array.from({ length: 6 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {loading || aiLoading
+          ? Array.from({ length: tasksToShow.length || 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-40 w-full" />
             ))
-          : tasksToShow.map((task) => (
+          : sortedTasksToShow.map((task) => (
               <TaskCard key={task.id} task={task} onEdit={handleEditTask} />
             ))}
       </div>
 
-      {!aiLoading && tasksToShow.length === 0 && (
+      {tasksToShow.length === 0 && (
         <div className="text-center py-16">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Plus className="w-8 h-8 text-gray-400" />
