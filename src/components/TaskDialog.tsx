@@ -30,11 +30,9 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Checkbox } from "@/components/ui/checkbox";
-import { X, Plus, Edit, Trash2, Loader2 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+
+import { Loader2 } from "lucide-react";
+
 import { toast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -47,13 +45,32 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { Slider } from "@/components/ui/slider";
+
 import { supabase } from "@/lib/supabaseClient";
-import PlanCards from "./PlanCards";
+import { aiGenerate } from "@/lib/aiGenerate";
 import {
-  Dialog as PlanDialog,
-  DialogContent as PlanDialogContent,
-} from "@/components/ui/dialog";
+  addStep,
+  removeStep,
+  toggleStepCompletion,
+  updateStepStatus,
+  getStepProgress,
+  getStepStatusColor,
+} from "@/lib/stepUtils";
+import {
+  addTag as addTagUtil,
+  removeTag as removeTagUtil,
+  handleTagKeyPress,
+} from "@/lib/tagUtils";
+import {
+  updateAiGenerateLimit as updateAiGenerateLimitUtil,
+  updateTaskLimit as updateTaskLimitUtil,
+  fetchLimits,
+} from "@/lib/limitUtils";
+import TaskStepsSection from "./Sections/TaskStepsSection";
+import TaskTagsSection from "./Sections/TaskTagsSection";
+import TaskAISettingsSection from "./Sections/TaskAISettingsSection";
+import PlanUpgradeAlertDialog from "./AlertDialogs/PlanUpgradeAlertDialog";
+import TaskLimitAlertDialog from "./AlertDialogs/TaskLimitAlertDialog";
 
 const taskSchema = z.object({
   title: z
@@ -80,7 +97,7 @@ interface TaskDialogProps {
 
 const GEMINI_API_KEY =
   import.meta.env.VITE_GEMINI_API_KEY ||
-  "AIzaSyCnI5o3lH6wxynyJuMlO50j60g1kgDdHUY"; // Place your Gemini API key in .env as VITE_GEMINI_API_KEY
+  "AIzaSyByQNKlr_7KtALagsF_Y2W3iyhX83n81Kk"; // Place your Gemini API key in .env as VITE_GEMINI_API_KEY
 
 export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const { addTask, updateTask } = useTaskContext();
@@ -150,166 +167,59 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     setShowUpdateConfirm(false);
   }, [isOpen, task, form]);
 
-  // Fetch ai_generate_limit on dialog open
+  // Remove in-component step/tag/limit functions and replace with wrappers using the utilities
+
+  // Tag management
+  const addTag = () => {
+    const updated = addTagUtil(form.getValues("tags"), newTag);
+    form.setValue("tags", updated);
+    setNewTag("");
+  };
+  const removeTag = (tagToRemove: string) => {
+    const updated = removeTagUtil(form.getValues("tags"), tagToRemove);
+    form.setValue("tags", updated);
+  };
+  const handleKeyPress = (e: React.KeyboardEvent) =>
+    handleTagKeyPress(e, addTag);
+
+  // Step management
+  const handleAddStep = () => {
+    setSteps((prev) =>
+      addStep(prev, newStepTitle, newStepDescription, newStepStatus)
+    );
+    setNewStepTitle("");
+    setNewStepDescription("");
+    setNewStepStatus("To Do");
+  };
+  const handleRemoveStep = (stepId: number) =>
+    setSteps((prev) => removeStep(prev, stepId));
+  const handleToggleStepCompletion = (stepId: number) =>
+    setSteps((prev) => toggleStepCompletion(prev, stepId));
+  const handleUpdateStepStatus = (
+    stepId: number,
+    status: "To Do" | "In Progress" | "Completed"
+  ) => setSteps((prev) => updateStepStatus(prev, stepId, status));
+  const handleGetStepProgress = () => getStepProgress(steps);
+  const handleGetStepStatusColor = (status: string) =>
+    getStepStatusColor(status as "To Do" | "In Progress" | "Completed");
+
+  // Limit management
+  const updateAiGenerateLimit = (newLimit: number) =>
+    updateAiGenerateLimitUtil(newLimit, setAiGenerateLimit);
+  const updateTaskLimit = (newLimit: number) =>
+    updateTaskLimitUtil(newLimit, setTaskLimit);
+
+  // Fetch limits on dialog open
   useEffect(() => {
-    async function fetchLimits() {
-      setAiLimitLoading(true);
-      setTaskLimitLoading(true);
-      try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
-        if (userError || !user) {
-          console.error("Failed to get user:", userError);
-          setAiGenerateLimit(null);
-          setTaskLimit(null);
-          setAiLimitLoading(false);
-          setTaskLimitLoading(false);
-          return;
-        }
-
-        console.log("Fetching limits for user:", user.id);
-
-        const { data, error } = await supabase
-          .from("users")
-          .select("ai_generate_limit, task_limit")
-          .eq("id", user.id)
-          .single();
-
-        if (error) {
-          console.error("Failed to fetch limits:", error);
-          setAiGenerateLimit(null);
-          setTaskLimit(null);
-        } else if (data) {
-          console.log("Current AI generate limit:", data.ai_generate_limit);
-          console.log("Current task limit:", data.task_limit);
-          setAiGenerateLimit(data.ai_generate_limit);
-          setTaskLimit(data.task_limit);
-        } else {
-          console.warn("No limits data found");
-          setAiGenerateLimit(null);
-          setTaskLimit(null);
-        }
-      } catch (err) {
-        console.error("Error in fetchLimits:", err);
-        setAiGenerateLimit(null);
-        setTaskLimit(null);
-      } finally {
-        setAiLimitLoading(false);
-        setTaskLimitLoading(false);
-      }
-    }
-
     if (isOpen) {
-      fetchLimits();
+      fetchLimits(
+        setAiGenerateLimit,
+        setTaskLimit,
+        setAiLimitLoading,
+        setTaskLimitLoading
+      );
     }
   }, [isOpen]);
-
-  // Function to update AI generate limit
-  const updateAiGenerateLimit = async (newLimit: number) => {
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) {
-        console.error("Failed to get user for AI limit update:", userError);
-        return false;
-      }
-
-      console.log(
-        `Attempting to update AI limit to ${newLimit} for user ${user.id}`
-      );
-
-      // Update the ai_generate_limit field
-      const { data, error: updateError } = await supabase
-        .from("users")
-        .update({
-          ai_generate_limit: newLimit,
-        })
-        .eq("id", user.id)
-        .select("ai_generate_limit");
-
-      if (updateError) {
-        console.error("Supabase update error:", updateError);
-        console.error("Error details:", {
-          code: updateError.code,
-          message: updateError.message,
-          details: updateError.details,
-          hint: updateError.hint,
-        });
-        return false;
-      }
-
-      if (data && data.length > 0) {
-        console.log(
-          "AI limit updated successfully:",
-          data[0].ai_generate_limit
-        );
-        setAiGenerateLimit(data[0].ai_generate_limit);
-        return true;
-      } else {
-        console.warn("Update succeeded but no data returned");
-        setAiGenerateLimit(newLimit);
-        return true;
-      }
-    } catch (err) {
-      console.error("Exception in updateAiGenerateLimit:", err);
-      return false;
-    }
-  };
-
-  // Function to update task limit
-  const updateTaskLimit = async (newLimit: number) => {
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) {
-        console.error("Failed to get user for task limit update:", userError);
-        return false;
-      }
-
-      console.log(
-        `Attempting to update task limit to ${newLimit} for user ${user.id}`
-      );
-
-      // Update the task_limit field
-      const { data, error: updateError } = await supabase
-        .from("users")
-        .update({
-          task_limit: newLimit,
-        })
-        .eq("id", user.id)
-        .select("task_limit");
-
-      if (updateError) {
-        console.error("Supabase update error:", updateError);
-        console.error("Error details:", {
-          code: updateError.code,
-          message: updateError.message,
-          details: updateError.details,
-          hint: updateError.hint,
-        });
-        return false;
-      }
-
-      if (data && data.length > 0) {
-        console.log("Task limit updated successfully:", data[0].task_limit);
-        setTaskLimit(data[0].task_limit);
-        return true;
-      } else {
-        console.warn("Update succeeded but no data returned");
-        setTaskLimit(newLimit);
-        return true;
-      }
-    } catch (err) {
-      console.error("Exception in updateTaskLimit:", err);
-      return false;
-    }
-  };
 
   const onSubmit = async (data: TaskFormData) => {
     setLoading(true);
@@ -391,76 +301,6 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     // on confirmation, call onSubmit(data)
   };
 
-  const addTag = () => {
-    if (newTag.trim() && !form.getValues("tags").includes(newTag.trim())) {
-      const currentTags = form.getValues("tags");
-      form.setValue("tags", [...currentTags, newTag.trim()]);
-      setNewTag("");
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    const currentTags = form.getValues("tags");
-    form.setValue(
-      "tags",
-      currentTags.filter((tag) => tag !== tagToRemove)
-    );
-  };
-
-  const addStep = () => {
-    if (newStepTitle.trim()) {
-      const newStep: TaskStep = {
-        id: Math.max(...steps.map((s) => s.id || 0), 0) + 1,
-        title: newStepTitle.trim(),
-        description: newStepDescription.trim() || undefined,
-        completed: newStepStatus === "Completed",
-        status: newStepStatus,
-      };
-      setSteps([...steps, newStep]);
-      setNewStepTitle("");
-      setNewStepDescription("");
-      setNewStepStatus("To Do");
-    }
-  };
-
-  const removeStep = (stepId: number) => {
-    setSteps(steps.filter((step) => step.id !== stepId));
-  };
-
-  const toggleStepCompletion = (stepId: number) => {
-    setSteps(
-      steps.map((step) => {
-        if (step.id === stepId) {
-          const newCompleted = !step.completed;
-          return {
-            ...step,
-            completed: newCompleted,
-            status: newCompleted ? "Completed" : "To Do",
-          };
-        }
-        return step;
-      })
-    );
-  };
-
-  const updateStepStatus = (
-    stepId: number,
-    status: "To Do" | "In Progress" | "Completed"
-  ) => {
-    setSteps(
-      steps.map((step) => {
-        if (step.id === stepId) {
-          return {
-            ...step,
-            status,
-            completed: status === "Completed",
-          };
-        }
-        return step;
-      })
-    );
-  };
-
   const startEditingStep = (step: TaskStep) => {
     setEditingStep(step.id);
     setEditStepTitle(step.title);
@@ -497,40 +337,14 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     setEditStepStatus("To Do");
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addTag();
-    }
-  };
-
   const handleStepKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       if (editingStep !== null) {
         saveStepEdit();
       } else {
-        addStep();
+        handleAddStep();
       }
-    }
-  };
-
-  const getStepProgress = () => {
-    if (steps.length === 0) return 0;
-    const completedSteps = steps.filter((step) => step.completed).length;
-    return Math.round((completedSteps / steps.length) * 100);
-  };
-
-  const getStepStatusColor = (status: string) => {
-    switch (status) {
-      case "To Do":
-        return "bg-gray-100 text-gray-800";
-      case "In Progress":
-        return "bg-blue-100 text-blue-800";
-      case "Completed":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -562,41 +376,13 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
     setAiLoading(true);
     try {
       console.log("Starting AI generation with limit:", aiGenerateLimit);
-
-      const prompt = `Given the following task title and description, generate:\n1. A list of exactly ${tagCount} relevant tags (as a JSON array of strings).\n2. A list of exactly ${stepCount} step objects (as a JSON array), each with \"title\" and \"description\".\n\nTask Title: ${title}\nTask Description: ${description}\n\nRespond with only valid JSON, no explanation, no markdown, and no code block.\n{\n  \"tags\": [...],\n  \"steps\": [{\"title\": \"...\", \"description\": \"...\"}, ...]\n}`;
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-          }),
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch AI suggestions");
-      const data = await response.json();
-      console.log("Gemini API raw response:", data);
-
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      console.log("Gemini API text:", text);
-
-      // Extract JSON from markdown code block if present
-      let jsonText = text;
-      const codeBlockMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-      if (codeBlockMatch) {
-        jsonText = codeBlockMatch[1];
-      }
-      let suggestions;
-      try {
-        suggestions = JSON.parse(jsonText);
-      } catch (e) {
-        console.error("Failed to parse AI response as JSON:", jsonText);
-        throw new Error("AI response was not valid JSON");
-      }
-
+      const suggestions = await aiGenerate({
+        title,
+        description,
+        tagCount,
+        stepCount,
+        apiKey: GEMINI_API_KEY,
+      });
       if (Array.isArray(suggestions.tags)) {
         form.setValue("tags", suggestions.tags);
       }
@@ -611,19 +397,11 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
           }))
         );
       }
-
-      console.log(
-        "AI generation successful, updating limit from",
-        aiGenerateLimit
-      );
-
       // Decrement AI limit if not unlimited
       if (aiGenerateLimit !== null && aiGenerateLimit !== -1) {
         const newLimit = aiGenerateLimit - 1;
         console.log(`Updating AI limit: ${aiGenerateLimit} → ${newLimit}`);
-
         const updateSuccess = await updateAiGenerateLimit(newLimit);
-
         if (!updateSuccess) {
           toast({
             title: "Failed to update AI limit",
@@ -636,7 +414,6 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
       } else if (aiGenerateLimit === -1) {
         console.log("AI limit is unlimited (-1), no update needed");
       }
-
       toast({
         title: "AI Suggestions Applied",
         description: "Tags and steps have been generated.",
@@ -791,328 +568,52 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                 )}
               />
 
-              <div className="space-y-3">
-                <FormLabel>Tags</FormLabel>
-                <div className="flex space-x-2">
-                  <Input
-                    placeholder="Add a tag"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                  />
-                  <Button
-                    type="button"
-                    onClick={addTag}
-                    size="icon"
-                    variant="outline"
-                  >
-                    <Plus className="w-4 h-4 text-[#B45309]" />
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {form.watch("tags").map((tag, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="flex items-center space-x-1"
-                    >
-                      <span>{tag}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeTag(tag)}
-                        className="ml-1 hover:bg-gray-200 rounded-full p-0.5"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+              <TaskTagsSection
+                tags={form.watch("tags")}
+                newTag={newTag}
+                setNewTag={setNewTag}
+                addTag={addTag}
+                removeTag={removeTag}
+                handleKeyPress={handleKeyPress}
+              />
 
-              <div className="space-y-3">
-                <FormLabel>Steps</FormLabel>
+              <TaskStepsSection
+                steps={steps}
+                newStepTitle={newStepTitle}
+                setNewStepTitle={setNewStepTitle}
+                newStepDescription={newStepDescription}
+                setNewStepDescription={setNewStepDescription}
+                newStepStatus={newStepStatus}
+                setNewStepStatus={setNewStepStatus}
+                editingStep={editingStep}
+                editStepTitle={editStepTitle}
+                setEditStepTitle={setEditStepTitle}
+                editStepDescription={editStepDescription}
+                setEditStepDescription={setEditStepDescription}
+                editStepStatus={editStepStatus}
+                setEditStepStatus={setEditStepStatus}
+                handleAddStep={handleAddStep}
+                handleRemoveStep={handleRemoveStep}
+                handleToggleStepCompletion={handleToggleStepCompletion}
+                handleUpdateStepStatus={handleUpdateStepStatus}
+                startEditingStep={startEditingStep}
+                saveStepEdit={saveStepEdit}
+                cancelStepEdit={cancelStepEdit}
+                handleStepKeyPress={handleStepKeyPress}
+                getStepProgress={handleGetStepProgress}
+                getStepStatusColor={handleGetStepStatusColor}
+              />
 
-                {/* Steps Progress Summary */}
-                {steps.length > 0 && (
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600">Overall Progress</span>
-                      <span className="text-gray-900 font-medium">
-                        {getStepProgress()}%
-                      </span>
-                    </div>
-                    <Progress value={getStepProgress()} className="h-2" />
-                    <p className="text-xs text-gray-500 mt-1">
-                      {steps.filter((s) => s.completed).length} of{" "}
-                      {steps.length} steps completed
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                  <div className="grid grid-cols-12 gap-2">
-                    <Input
-                      placeholder="Step title"
-                      value={newStepTitle}
-                      onChange={(e) => setNewStepTitle(e.target.value)}
-                      onKeyPress={handleStepKeyPress}
-                      className="col-span-4 outline-none"
-                    />
-                    <Input
-                      placeholder="Description (optional)"
-                      value={newStepDescription}
-                      onChange={(e) => setNewStepDescription(e.target.value)}
-                      onKeyPress={handleStepKeyPress}
-                      className="col-span-4 outline-none"
-                    />
-                    <Select
-                      value={newStepStatus}
-                      onValueChange={(
-                        value: "To Do" | "In Progress" | "Completed"
-                      ) => setNewStepStatus(value)}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#fdf7f7]">
-                        <SelectItem value="To Do">To Do</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      type="button"
-                      onClick={addStep}
-                      size="icon"
-                      variant="outline"
-                      className="col-span-1"
-                    >
-                      <Plus className="w-4 h-4 text-[#B45309]" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  {steps.map((step) => (
-                    <div
-                      key={step.id}
-                      className="flex items-start space-x-2 p-3 border rounded-lg"
-                    >
-                      <Checkbox
-                        checked={step.completed}
-                        onCheckedChange={() => toggleStepCompletion(step.id)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1">
-                        {editingStep === step.id ? (
-                          <div className="space-y-2">
-                            <Input
-                              value={editStepTitle}
-                              onChange={(e) => setEditStepTitle(e.target.value)}
-                              onKeyPress={handleStepKeyPress}
-                              placeholder="Step title"
-                            />
-                            <Input
-                              value={editStepDescription}
-                              onChange={(e) =>
-                                setEditStepDescription(e.target.value)
-                              }
-                              onKeyPress={handleStepKeyPress}
-                              placeholder="Step description (optional)"
-                            />
-                            <Select
-                              value={editStepStatus}
-                              onValueChange={(
-                                value: "To Do" | "In Progress" | "Completed"
-                              ) => setEditStepStatus(value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="bg-[#fdf7f7]">
-                                <SelectItem value="To Do">To Do</SelectItem>
-                                <SelectItem value="In Progress">
-                                  In Progress
-                                </SelectItem>
-                                <SelectItem value="Completed">
-                                  Completed
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <div className="flex space-x-2">
-                              <Button
-                                type="button"
-                                onClick={saveStepEdit}
-                                size="sm"
-                                variant="outline"
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                type="button"
-                                onClick={cancelStepEdit}
-                                size="sm"
-                                variant="outline"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="flex items-center justify-between mb-1">
-                              <p
-                                className={`font-medium ${
-                                  step.completed
-                                    ? "line-through text-gray-500"
-                                    : ""
-                                }`}
-                              >
-                                {step.title}
-                              </p>
-                              <div className="flex items-center space-x-2">
-                                <Badge
-                                  className={`text-xs ${getStepStatusColor(
-                                    step.status
-                                  )}`}
-                                >
-                                  {step.status}
-                                </Badge>
-                                <Select
-                                  value={step.status}
-                                  onValueChange={(
-                                    value: "To Do" | "In Progress" | "Completed"
-                                  ) => updateStepStatus(step.id, value)}
-                                >
-                                  <SelectTrigger className="h-6 w-20 text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent className="bg-[#fdf7f7]">
-                                    <SelectItem value="To Do">To Do</SelectItem>
-                                    <SelectItem value="In Progress">
-                                      In Progress
-                                    </SelectItem>
-                                    <SelectItem value="Completed">
-                                      Completed
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                            {step.description && (
-                              <p
-                                className={`text-sm text-gray-600 ${
-                                  step.completed ? "line-through" : ""
-                                }`}
-                              >
-                                {step.description}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex space-x-1">
-                        <Button
-                          type="button"
-                          onClick={() => startEditingStep(step)}
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={() => removeStep(step.id)}
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <FormLabel>AI Generation Settings</FormLabel>
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs text-gray-600">
-                        Number of Tags
-                      </span>
-                      <span className="text-xs text-gray-900 font-medium">
-                        {tagCount}
-                      </span>
-                    </div>
-                    <Slider
-                      min={1}
-                      max={5}
-                      step={1}
-                      value={[tagCount]}
-                      onValueChange={([val]) => setTagCount(val)}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs text-gray-600">
-                        Number of Steps
-                      </span>
-                      <span className="text-xs text-gray-900 font-medium">
-                        {stepCount}
-                      </span>
-                    </div>
-                    <Slider
-                      min={1}
-                      max={10}
-                      step={1}
-                      value={[stepCount]}
-                      onValueChange={([val]) => setStepCount(val)}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-                {/* Show AI limit info */}
-                <div className="mt-2 text-xs text-gray-500">
-                  {aiLimitLoading ? (
-                    <span>Loading AI generate limit...</span>
-                  ) : aiGenerateLimit === -1 ? (
-                    <span>
-                      AI Generate Limit: <b>Unlimited</b>
-                    </span>
-                  ) : aiGenerateLimit !== null ? (
-                    <span>
-                      AI Generate Limit left: <b>{aiGenerateLimit}</b>
-                    </span>
-                  ) : (
-                    <span>
-                      AI Generate Limit: <b>?</b>
-                    </span>
-                  )}
-                </div>
-                {/* Show Task limit info */}
-                <div className="mt-1 text-xs text-gray-500">
-                  {taskLimitLoading ? (
-                    <span>Loading task limit...</span>
-                  ) : taskLimit === -1 ? (
-                    <span>
-                      Task Limit: <b>Unlimited</b>
-                    </span>
-                  ) : taskLimit !== null ? (
-                    <span>
-                      Task Limit left: <b>{taskLimit}</b>
-                    </span>
-                  ) : (
-                    <span>
-                      Task Limit: <b>?</b>
-                    </span>
-                  )}
-                </div>
-              </div>
+              <TaskAISettingsSection
+                tagCount={tagCount}
+                setTagCount={setTagCount}
+                stepCount={stepCount}
+                setStepCount={setStepCount}
+                aiLimitLoading={aiLimitLoading}
+                aiGenerateLimit={aiGenerateLimit}
+                taskLimitLoading={taskLimitLoading}
+                taskLimit={taskLimit}
+              />
             </div>
 
             <Button
@@ -1132,70 +633,20 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
             </Button>
 
             {/* Plan Upgrade Alert Dialog */}
-            <AlertDialog open={showPlanAlert} onOpenChange={setShowPlanAlert}>
-              <AlertDialogContent className="p-6">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>AI Generate Limit Reached</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    You have reached your daily AI generation limit. Upgrade
-                    your plan to get more AI generations.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setShowPlanAlert(false)}>
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={async () => {
-                      setShowPlanAlert(false);
-                      await openPlanCardsDialog();
-                    }}
-                    className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
-                  >
-                    Upgrade Plan
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            {/* PlanCards Dialog */}
-            <PlanDialog
-              open={showPlanCardsDialog}
-              onOpenChange={setShowPlanCardsDialog}
-            >
-              <PlanDialogContent className="max-w-full bg-transparent border-none shadow-none z-[100] flex items-center justify-center min-h-screen h-screen overflow-y-hidden">
-                {planCardsUser && <PlanCards user={planCardsUser} />}
-              </PlanDialogContent>
-            </PlanDialog>
+            <PlanUpgradeAlertDialog
+              open={showPlanAlert}
+              onOpenChange={setShowPlanAlert}
+            />
 
             {/* Task Limit Alert Dialog */}
-            <AlertDialog
+            <TaskLimitAlertDialog
               open={showTaskLimitAlert}
               onOpenChange={setShowTaskLimitAlert}
-            >
-              <AlertDialogContent className="p-6">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Task Limit Reached</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    You have reached your daily task limit. Upgrade your plan to
-                    create more tasks.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setShowPlanAlert(false)}>
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={async () => {
-                      setShowPlanAlert(false);
-                      await openPlanCardsDialog();
-                    }}
-                    className="border-l-2 border-b-2 border-[#FFFFFF] shadow-lg shadow-[#f2daba]"
-                  >
-                    Upgrade Plan
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+              onUpgrade={async () => {
+                setShowTaskLimitAlert(false);
+                await openPlanCardsDialog();
+              }}
+            />
 
             <DialogFooter className="flex gap-2 sm:gap-0">
               <Button

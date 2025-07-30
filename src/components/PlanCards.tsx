@@ -117,7 +117,7 @@ export default function PlanCards({ user }) {
   };
 
   return (
-    <div className="w-full h-full flex justify-center items-start pt-2 px-1 md:py-10 md:pt-20 md:px-2 overflow-y-scroll hide-scrollbar">
+    <div className="w-full h-full flex justify-center items-start pt-10 px-4 md:py-10 md:pt-20 md:px-2 overflow-y-scroll hide-scrollbar">
       <div className="grid p-10 px-12 min-w-0 grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 w-full max-w-screen-xl sm:px-2">
         {displayPlans.map((plan, idx) => (
           <div

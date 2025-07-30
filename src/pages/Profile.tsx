@@ -96,7 +96,6 @@ export default function Profile({ user }: { user: any }) {
         <div className="w-full mx-auto mb-6">
           <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-50 border border-[#E9CCAC] rounded-lg p-3 gap-4">
             <div className="flex items-start gap-3">
-              <Info className="w-5 h-5 mt-0.5 text-[#B46309]" />
               <div>
                 <div className="font-meduim text-gray-900">
                   Unlock More with DevTracker{" "}

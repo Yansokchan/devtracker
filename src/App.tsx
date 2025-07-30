@@ -54,7 +54,7 @@ const CustomSidebarTrigger = () => {
       variant="ghost"
       size="sm"
       onClick={() => setOpenMobile(!openMobile)}
-      className="h-10 w-10 p-0 hover:bg-[#fdf7f7] transition-colors duration-200 md:hidden"
+      className="h-8 w-8 p-0 mr-1 hover:bg-[#fdf7f7] transition-colors duration-200 md:hidden"
       aria-label={openMobile ? "Close sidebar" : "Open sidebar"}
     >
       <AnimatedHamburgerIcon isOpen={openMobile} />
@@ -221,15 +221,14 @@ const App = () => {
                     <CustomSidebarTrigger />
                     <div className="flex flex-1 flex-row items-center justify-between w-full">
                       <div className="flex items-center space-x-4">
-                        <h2 className="text-lg font-semibold text-gray-900 ml-1">
+                        <h2 className="text-xl font-semibold text-gray-900 ml-1 pt-[2px]">
                           DevTracker <span className="text-[#B45309]">PRO</span>
                         </h2>
                       </div>
                       {/* Plan label and upgrade button */}
                       <div className="flex items-center space-x-3">
                         <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium border border-primary/20">
-                          Current Plan:{" "}
-                          {plan.charAt(0).toUpperCase() + plan.slice(1)}
+                          {plan.charAt(0).toUpperCase() + plan.slice(1)} Plan
                         </span>
                       </div>
                     </div>
