@@ -11,7 +11,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2 } from "lucide-react";
 import { TaskStep } from "@/types/task";
 
 interface TaskStepsSectionProps {
@@ -88,14 +88,15 @@ const TaskStepsSection: React.FC<TaskStepsSectionProps> = ({
         </p>
       </div>
     )}
-    <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-      <div className="grid grid-cols-12 gap-2">
+    <div className="space-y-2 max-h-60  custom-scrollbar">
+      <div className="grid grid-cols-3 gap-2">
         <Input
           placeholder="Step title"
           value={newStepTitle}
           onChange={(e) => setNewStepTitle(e.target.value)}
           onKeyPress={handleStepKeyPress}
           className="col-span-4 outline-none"
+          required
         />
         <Input
           placeholder="Description (optional)"
@@ -103,6 +104,7 @@ const TaskStepsSection: React.FC<TaskStepsSectionProps> = ({
           onChange={(e) => setNewStepDescription(e.target.value)}
           onKeyPress={handleStepKeyPress}
           className="col-span-4 outline-none"
+          required
         />
         <Select value={newStepStatus} onValueChange={setNewStepStatus}>
           <SelectTrigger className="col-span-3">
@@ -119,9 +121,9 @@ const TaskStepsSection: React.FC<TaskStepsSectionProps> = ({
           onClick={handleAddStep}
           size="icon"
           variant="outline"
-          className="col-span-1"
+          className=""
         >
-          +
+          <Plus className="w-4 h-4 text-[#B45309]" />
         </Button>
       </div>
     </div>

@@ -116,8 +116,8 @@ export function AppSidebar({ user }: { user: any }) {
           </div>
 
           {/* Quick Add Button */}
-          {/* {open && (
-            <div className="p-4 border-t-2 border-[#dcd5c4]">
+          {open && (
+            <div className="p-[6px] border-t-2 border-[#dcd5c4]">
               <Button
                 onClick={() => {
                   if (isMobile) {
@@ -133,10 +133,10 @@ export function AppSidebar({ user }: { user: any }) {
                 Add New Task
               </Button>
             </div>
-          )} */}
+          )}
 
           {/* Navigation */}
-          <SidebarGroup className="border-t-2 border-[#dcd5c4]">
+          <SidebarGroup>
             <SidebarGroupLabel>Navigation</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
