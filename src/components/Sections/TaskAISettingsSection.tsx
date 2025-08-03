@@ -22,7 +22,7 @@ const TaskAISettingsSection: React.FC<TaskAISettingsSectionProps> = ({
   taskLimitLoading,
   taskLimit,
 }) => (
-  <div className="space-y-3">
+  <div className="space-y-3  text-[14px]">
     <label className="font-medium">AI Generation Settings</label>
     <div className="flex items-center gap-4">
       <div className="flex-1">

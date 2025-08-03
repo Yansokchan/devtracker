@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import DatePicker from "@/components/DatePicker";
 import {
   Form,
   FormField,
@@ -128,6 +129,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
   const [showTaskLimitAlert, setShowTaskLimitAlert] = useState(false);
   const [showPlanCardsDialog, setShowPlanCardsDialog] = useState(false);
   const [planCardsUser, setPlanCardsUser] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -153,6 +155,8 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         tags: task.tags,
       });
       setSteps(task.steps || []);
+      // Set selected date for date picker
+      setSelectedDate(task.due_date ? new Date(task.due_date) : undefined);
     } else if (isOpen && !task) {
       form.reset({
         title: "",
@@ -163,6 +167,7 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         tags: [],
       });
       setSteps([]);
+      setSelectedDate(undefined);
     }
     setShowUpdateConfirm(false);
   }, [isOpen, task, form]);
@@ -346,6 +351,13 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
         handleAddStep();
       }
     }
+  };
+
+  const handleDateChange = (date: Date | undefined) => {
+    setSelectedDate(date);
+    // Update form value in YYYY-MM-DD format for database
+    const dateString = date ? date.toISOString().split("T")[0] : "";
+    form.setValue("due_date", dateString);
   };
 
   const handleAIGenerate = async () => {
@@ -554,19 +566,14 @@ export function TaskDialog({ isOpen, onClose, task }: TaskDialogProps) {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="due_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div>
+                <DatePicker
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  label="Due Date"
+                  placeholder="Pick a date"
+                />
+              </div>
 
               <TaskTagsSection
                 tags={form.watch("tags")}

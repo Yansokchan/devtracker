@@ -21,7 +21,7 @@ const TaskTagsSection: React.FC<TaskTagsSectionProps> = ({
   removeTag,
   handleKeyPress,
 }) => (
-  <div className="space-y-3">
+  <div className="space-y-3 text-[14px]">
     <label className="font-medium">Tags</label>
     <div className="flex space-x-2">
       <Input

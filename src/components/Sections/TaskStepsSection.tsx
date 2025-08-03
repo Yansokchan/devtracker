@@ -70,7 +70,7 @@ const TaskStepsSection: React.FC<TaskStepsSectionProps> = ({
   getStepProgress,
   getStepStatusColor,
 }) => (
-  <div className="space-y-3">
+  <div className="space-y-3 text-[14px]">
     <label className="font-medium">Steps</label>
     {/* Steps Progress Summary */}
     {steps.length > 0 && (
