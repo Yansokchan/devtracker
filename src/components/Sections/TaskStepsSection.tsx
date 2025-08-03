@@ -96,7 +96,6 @@ const TaskStepsSection: React.FC<TaskStepsSectionProps> = ({
           onChange={(e) => setNewStepTitle(e.target.value)}
           onKeyPress={handleStepKeyPress}
           className="col-span-4 outline-none"
-          required
         />
         <Input
           placeholder="Description (optional)"
@@ -104,7 +103,6 @@ const TaskStepsSection: React.FC<TaskStepsSectionProps> = ({
           onChange={(e) => setNewStepDescription(e.target.value)}
           onKeyPress={handleStepKeyPress}
           className="col-span-4 outline-none"
-          required
         />
         <Select value={newStepStatus} onValueChange={setNewStepStatus}>
           <SelectTrigger className="col-span-3">
